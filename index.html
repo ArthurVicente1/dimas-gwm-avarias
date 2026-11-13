@@ -52,6 +52,9 @@
       <div class="text-center">
         <h1 class="text-xl font-extrabold text-slate-900">Acesso Corporativo</h1>
         <p class="text-xs text-slate-500 mt-1">Gestão de Avarias (SLA 72h), Orçamentos & Funilaria 0km</p>
+        <div id="cloud-status-login" class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-50 text-cyan-800 text-[11px] font-bold">
+          🔄 Conectando ao Firebase Dimas GWM...
+        </div>
       </div>
 
       <form onsubmit="fazerLogin(event)" class="space-y-4">
@@ -117,6 +120,10 @@
             <text x="172" y="39" fill="#E2E8F0" font-family="Plus Jakarta Sans, sans-serif" font-weight="400" font-size="17">Hello, tomorrow.</text>
           </svg>
         </div>
+
+        <span id="cloud-badge" class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+          🟢 Nuvem Sincronizada
+        </span>
       </div>
 
       <!-- ABAS -->
@@ -130,11 +137,11 @@
 
       <!-- BACKUP & USUÁRIO ATIVO -->
       <div class="flex items-center gap-2">
-        <button onclick="fazerBackupJSON()" title="Baixar arquivo único com dados e fotos para salvar no Google Drive" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">
-          ☁️ Backup Drive
+        <button onclick="fazerBackupJSON()" title="Baixar cópia de segurança em arquivo JSON" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          ☁️ Backup JSON
         </button>
-        <label title="Carregar arquivo de backup salvo" class="bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
-          📥 Restaurar
+        <label title="Importar backup anterior para a nuvem" class="bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+          📥 Importar
           <input type="file" accept=".json" onchange="restaurarBackupJSON(event)" class="hidden" />
         </label>
         <div class="h-6 w-px bg-slate-700 mx-0.5"></div>
@@ -149,6 +156,12 @@
     </div>
   </header>
 
+  <!-- ALERTA DE REGRAS FIREBASE (SÓ APARECE SE ESTIVER BLOQUEADO) -->
+  <div id="firebase-error-banner" class="hidden bg-rose-600 text-white px-6 py-3 text-xs font-semibold flex items-center justify-between">
+    <span id="firebase-error-text">Atenção: Verifique se o Firestore Database está ativado em modo de teste no console do Firebase.</span>
+    <button onclick="this.parentElement.classList.add('hidden')" class="underline ml-4">Fechar</button>
+  </div>
+
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="w-full px-4 sm:px-8 py-6 flex-1">
 
@@ -156,8 +169,8 @@
     <section id="tab-dashboard" class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Painel Executivo — Dimas GWM</h2>
-          <p class="text-sm text-slate-500">Controle de avarias (SLA 72h), orçamentos de funilaria, peças e ressarcimento</p>
+          <h2 class="text-xl font-bold text-slate-900">Painel Executivo — Dimas GWM (Tempo Real)</h2>
+          <p class="text-sm text-slate-500">Sincronizado na nuvem entre Logística / Controle Geral e Analista de Funilaria</p>
         </div>
         <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 card-shadow">
           <button onclick="setPeriod('all')" id="period-all" class="period-btn bg-dimas-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Todos</button>
@@ -234,7 +247,7 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-base font-bold text-slate-900">Fila Operacional & Confirmação Funilaria</h3>
-            <p class="text-xs text-slate-500">Dê o "OK", gere o Termo em PDF, avise a funilaria no WhatsApp ou dispare o e-mail no Outlook</p>
+            <p class="text-xs text-slate-500">Qualquer atualização feita aqui aparece instantaneamente para os outros usuários logados</p>
           </div>
           <button onclick="switchTab('novo')" id="btn-dash-novo" class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">
             + Registrar Novo
@@ -250,7 +263,7 @@
         <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-bold text-slate-900">Novo Registro de Ocorrência 0km</h2>
-            <p class="text-xs text-slate-500">Anexe as fotos e documentos direto no sistema e gere o e-mail do Outlook</p>
+            <p class="text-xs text-slate-500">Salva direto na nuvem Firebase com fotos e dispara o e-mail no Outlook</p>
           </div>
 
           <div>
@@ -311,7 +324,7 @@
           <!-- COFRE DE FOTOS E DOCUMENTOS -->
           <div class="bg-cyan-50/40 rounded-xl p-4 border border-cyan-200 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase text-cyan-900">Armazém Interno de Fotos & Docs (CT-e / NF-e)</span>
+              <span class="text-xs font-bold uppercase text-cyan-900">Armazém na Nuvem de Fotos & Docs (CT-e / NF-e)</span>
               <label class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition">
                 + Anexar Fotos / PDFs
                 <input type="file" multiple accept="image/*,.pdf" onchange="anexarArquivosRegistro(event)" class="hidden" />
@@ -333,11 +346,11 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button type="button" onclick="salvarEGerarEmail('app')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
-              💾 Salvar e Abrir Outlook App
+            <button type="button" id="btn-save-app" onclick="salvarEGerarEmail('app')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
+              💾 Salvar na Nuvem e Abrir Outlook App
             </button>
-            <button type="button" onclick="salvarEGerarEmail('web')" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
-              🌐 Salvar e Abrir Outlook Web (Aba)
+            <button type="button" id="btn-save-web" onclick="salvarEGerarEmail('web')" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
+              🌐 Salvar na Nuvem e Abrir Outlook Web
             </button>
           </div>
         </div>
@@ -382,22 +395,22 @@
     <section id="tab-lote" class="hidden space-y-6">
       <div class="bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
         <div>
-          <h2 class="text-lg font-bold text-slate-900">Importação de Pasta em Lote</h2>
-          <p class="text-xs text-slate-500">Selecione a pasta do computador, confira ou ajuste o <strong>Modelo GWM</strong>, o tipo e a descrição de cada veículo e jogue na planilha.</p>
+          <h2 class="text-lg font-bold text-slate-900">Importação de Pasta em Lote para Nuvem</h2>
+          <p class="text-xs text-slate-500">Selecione a pasta do computador, confira ou ajuste o <strong>Modelo GWM</strong>, o tipo e a descrição de cada veículo e envie para o banco em nuvem.</p>
         </div>
 
         <label class="border-2 border-dashed border-cyan-400 bg-cyan-50/30 hover:bg-cyan-50/70 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition">
           <span class="text-4xl mb-2">📂</span>
           <span class="font-bold text-sm text-slate-800">Clique para selecionar a pasta do computador</span>
-          <span class="text-xs text-slate-500 mt-1">Anexa as fotos e documentos automaticamente e permite selecionar o modelo exato de cada carro</span>
+          <span class="text-xs text-slate-500 mt-1">Anexa as fotos automaticamente e sincroniza com todos os usuários</span>
           <input type="file" webkitdirectory directory multiple onchange="processarPastaLote(event)" class="hidden" />
         </label>
 
         <div id="lote-resultados" class="hidden space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
             <h3 class="font-bold text-sm text-slate-800">Veículos Detectados (<span id="lote-count">0</span>) — Revise o Modelo antes de salvar:</h3>
-            <button onclick="salvarLoteNaPlanilha()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
-              ✅ Jogar Todos na Planilha
+            <button id="btn-salvar-lote" onclick="salvarLoteNaPlanilha()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+              ✅ Enviar Todos para a Nuvem
             </button>
           </div>
           <div id="lote-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -453,7 +466,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-4">
           <h2 class="text-lg font-bold text-slate-900">Cadastrar Novo Usuário</h2>
-          <p class="text-xs text-slate-500">Crie acessos individuais para a equipe da Dimas GWM</p>
+          <p class="text-xs text-slate-500">Os acessos criados ficam salvos na nuvem para toda a empresa</p>
           <form onsubmit="adicionarUsuario(event)" class="space-y-3.5">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo</label>
@@ -477,7 +490,7 @@
               </div>
             </div>
             <button type="submit" class="w-full bg-dimas-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition">
-              + Salvar Usuário
+              + Salvar Usuário na Nuvem
             </button>
           </form>
         </div>
@@ -492,7 +505,7 @@
 
   </main>
 
-  <!-- MODAL DOSSIÊ DO VEÍCULO (FOTOS + OK FUNILARIA + ORÇAMENTO/OS + TERMO PDF + HISTÓRICO) -->
+  <!-- MODAL DOSSIÊ DO VEÍCULO -->
   <div id="modal-dossie" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl space-y-5">
       <div class="flex items-start justify-between border-b border-slate-100 pb-4">
@@ -589,7 +602,22 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAz-vW95DWbEBd3jhm_W5yGlJhfD0AoFpU",
+      authDomain: "dimas-gwm-avarias.firebaseapp.com",
+      projectId: "dimas-gwm-avarias",
+      storageBucket: "dimas-gwm-avarias.firebasestorage.app",
+      messagingSenderId: "881575871703",
+      appId: "1:881575871703:web:e6cc207359882cff42dc92"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const EMAIL_TO = "atendimento.veiculos@gwmmotors.com.br";
     const CC_BASE = ["adalto.paes@dimasgwm.com.br", "jose.gularte@dimasgwm.com.br", "marco.wasconcellos@dimas.com.br"];
     const EMAIL_JEAN = "jean.mingarini@dimas.com.br";
@@ -608,13 +636,13 @@
     ];
 
     const DEFAULT_USERS = [
-      { id: 1, nome: "Controle Geral (Logística)", login: "admin", senha: "dimas123", role: "admin" },
-      { id: 2, nome: "Analista de Funilaria", login: "funilaria", senha: "funilaria123", role: "funilaria" }
+      { id: "user_admin", nome: "Controle Geral (Logística)", login: "admin", senha: "dimas123", role: "admin" },
+      { id: "user_funilaria", nome: "Analista de Funilaria", login: "funilaria", senha: "funilaria123", role: "funilaria" }
     ];
 
-    let usuarios = JSON.parse(localStorage.getItem("dimas_gwm_users_v3") || JSON.stringify(DEFAULT_USERS));
-    let usuarioLogado = JSON.parse(sessionStorage.getItem("dimas_gwm_session_v3") || "null");
-    let registros = JSON.parse(localStorage.getItem("dimas_gwm_ocorrencias_v3") || "[]");
+    let usuarios = [...DEFAULT_USERS];
+    let usuarioLogado = JSON.parse(sessionStorage.getItem("dimas_gwm_session_cloud") || "null");
+    let registros = [];
 
     let tipoAtual = "Avaria";
     let periodoAtual = "all";
@@ -625,6 +653,53 @@
 
     document.getElementById("inp-modelo").innerHTML = MODELOS_GWM.map(m => `<option value="${m}">${m}</option>`).join("");
     document.getElementById("inp-data").value = new Date().toISOString().split("T")[0];
+
+    // SINCRONIZAÇÃO EM TEMPO REAL COM FIRESTORE
+    onSnapshot(collection(db, "usuarios"), async (snap) => {
+      if (snap.empty) {
+        for (const u of DEFAULT_USERS) {
+          await setDoc(doc(db, "usuarios", String(u.id)), u);
+        }
+      } else {
+        usuarios = snap.docs.map(d => d.data());
+        renderUsuarios();
+      }
+    }, (err) => {
+      document.getElementById("firebase-error-banner").classList.remove("hidden");
+      document.getElementById("firebase-error-text").textContent = "Erro de permissão no Firestore: Ative o Firestore Database em Modo de Teste no Console do Firebase.";
+    });
+
+    onSnapshot(query(collection(db, "ocorrencias"), orderBy("id", "desc")), (snap) => {
+      registros = snap.docs.map(d => d.data());
+      document.getElementById("badge-total").textContent = registros.length;
+      document.getElementById("cloud-status-login").textContent = "🟢 Conectado à Nuvem Dimas GWM";
+      document.getElementById("cloud-badge").classList.remove("hidden");
+      renderDashboard();
+      renderPlanilha();
+      if (modalRegistroId) {
+        const stillExists = registros.find(x => x.id === modalRegistroId);
+        if (stillExists) abrirModalDossie(modalRegistroId);
+      }
+    }, (err) => {
+      document.getElementById("cloud-status-login").textContent = "⚠️ Verifique o Firestore no Firebase";
+      document.getElementById("firebase-error-banner").classList.remove("hidden");
+    });
+
+    async function salvarRegistroNuvem(item) {
+      await setDoc(doc(db, "ocorrencias", String(item.id)), item);
+    }
+
+    async function excluirRegistroNuvem(id) {
+      await deleteDoc(doc(db, "ocorrencias", String(id)));
+    }
+
+    async function salvarUsuarioNuvem(u) {
+      await setDoc(doc(db, "usuarios", String(u.id)), u);
+    }
+
+    async function excluirUsuarioNuvem(id) {
+      await deleteDoc(doc(db, "usuarios", String(id)));
+    }
 
     function detectarModeloPorTexto(texto) {
       const t = (texto || "").toLowerCase();
@@ -639,16 +714,6 @@
       return "Haval H6 HEV2";
     }
 
-    function salvarTudo() {
-      try {
-        localStorage.setItem("dimas_gwm_ocorrencias_v3", JSON.stringify(registros));
-        localStorage.setItem("dimas_gwm_users_v3", JSON.stringify(usuarios));
-      } catch (e) {
-        alert("Aviso: Limite de memória do navegador atingido pelas fotos. Use o botão 'Backup Drive' no topo para salvar tudo com segurança!");
-      }
-      document.getElementById("badge-total").textContent = registros.length;
-    }
-
     function registrarLog(item, acao) {
       if (!item.historico) item.historico = [];
       const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -656,7 +721,6 @@
       item.historico.unshift(`${agora} — ${acao} (${autor})`);
     }
 
-    // FAROL SLA 72H
     function getBadgeSLA(dataStr, status) {
       if (status === "Concluído" || !dataStr) return "";
       const rec = new Date(dataStr + "T00:00:00");
@@ -669,16 +733,16 @@
       return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d (SLA 72h Estourado)</span>`;
     }
 
-    // LOGIN & PERMISSÕES
-    function preencherLogin(u) {
+    // LOGIN
+    window.preencherLogin = function(u) {
       const found = usuarios.find(x => x.login === u);
       if (found) {
         document.getElementById("login-user").value = found.login;
         document.getElementById("login-pass").value = found.senha;
       }
-    }
+    };
 
-    function fazerLogin(e) {
+    window.fazerLogin = function(e) {
       e.preventDefault();
       const u = document.getElementById("login-user").value.trim();
       const p = document.getElementById("login-pass").value.trim();
@@ -690,15 +754,15 @@
         return;
       }
       usuarioLogado = found;
-      sessionStorage.setItem("dimas_gwm_session_v3", JSON.stringify(found));
+      sessionStorage.setItem("dimas_gwm_session_cloud", JSON.stringify(found));
       aplicarSessao();
-    }
+    };
 
-    function logout() {
-      sessionStorage.removeItem("dimas_gwm_session_v3");
+    window.logout = function() {
+      sessionStorage.removeItem("dimas_gwm_session_cloud");
       usuarioLogado = null;
       document.getElementById("login-screen").classList.remove("hidden");
-    }
+    };
 
     function aplicarSessao() {
       if (!usuarioLogado) {
@@ -718,7 +782,7 @@
       switchTab("dashboard");
     }
 
-    function switchTab(tab) {
+    window.switchTab = function(tab) {
       ["dashboard", "novo", "lote", "planilha", "usuarios"].forEach(t => {
         document.getElementById("tab-" + t).classList.add("hidden");
         const btn = document.getElementById("btn-tab-" + t);
@@ -734,10 +798,10 @@
       if (tab === "planilha") renderPlanilha();
       if (tab === "novo") updateLivePreview();
       if (tab === "usuarios") renderUsuarios();
-    }
+    };
 
     // OCORRÊNCIA & OUTLOOK
-    function setTipoOcorrencia(tipo) {
+    window.setTipoOcorrencia = function(tipo) {
       tipoAtual = tipo;
       const btnAvaria = document.getElementById("btn-tipo-avaria");
       const btnFaltante = document.getElementById("btn-tipo-faltante");
@@ -756,14 +820,14 @@
         lblDesc.textContent = "Itens Faltantes Identificados na Descarga *";
       }
       updateLivePreview();
-    }
+    };
 
-    function addTagItem(item) {
+    window.addTagItem = function(item) {
       const el = document.getElementById("inp-descricao");
       const val = el.value.trim();
       el.value = val ? val + ", " + item : "Faltando: " + item;
       updateLivePreview();
-    }
+    };
 
     function getCCList(tipo) {
       return tipo === "Avaria" ? [...CC_BASE, EMAIL_JEAN] : [...CC_BASE];
@@ -812,7 +876,7 @@ Dimas GWM`;
       return { to: EMAIL_TO, cc: getCCList(obj.tipo).join(", "), assunto, corpo, pasta, ult6 };
     }
 
-    function updateLivePreview() {
+    window.updateLivePreview = function() {
       const chassi = document.getElementById("inp-chassi").value.trim();
       document.getElementById("chassi-badge").textContent = chassi.length >= 6 ? `(Final: ${chassi.slice(-6)})` : "";
 
@@ -841,7 +905,7 @@ Dimas GWM`;
         badgeJean.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
         badgeJean.textContent = "Sem Jean Mingarini (Item Faltante)";
       }
-    }
+    };
 
     function dispararEmail(obj, modo = "app") {
       const mail = montarDadosEmail(obj);
@@ -855,16 +919,16 @@ Dimas GWM`;
     }
 
     function avisarWhatsApp(item) {
-      const texto = `Olá! Novo registro *Dimas GWM*:\n• *Modelo:* ${item.modelo}\n• *Chassi:* ${item.chassi}\n• *Tipo:* ${item.tipo}\n• *Ocorrência:* ${item.descricao}\n\nJá está no sistema para conferência e dar o *OK* de recebimento.`;
+      const texto = `Olá! Novo registro *Dimas GWM*:\n• *Modelo:* ${item.modelo}\n• *Chassi:* ${item.chassi}\n• *Tipo:* ${item.tipo}\n• *Ocorrência:* ${item.descricao}\n\nJá está no sistema online para conferência e dar o *OK* de recebimento.`;
       window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
     }
 
-    function copiarCorpoEmail() {
+    window.copiarCorpoEmail = function() {
       navigator.clipboard.writeText(document.getElementById("prev-corpo").value);
       alert("Texto copiado! Cole no Outlook com Ctrl+V.");
-    }
+    };
 
-    function abrirOutlookAtual(modo) {
+    window.abrirOutlookAtual = function(modo) {
       const obj = {
         tipo: tipoAtual,
         data: document.getElementById("inp-data").value,
@@ -876,9 +940,9 @@ Dimas GWM`;
         nfe: document.getElementById("chk-nfe").checked
       };
       dispararEmail(obj, modo);
-    }
+    };
 
-    // COMPRESSÃO E ANEXO DE FOTOS/DOCS
+    // COMPRESSÃO DE IMAGENS (OTIMIZADA PARA FIRESTORE)
     function lerArquivoComprimido(file) {
       return new Promise(resolve => {
         const reader = new FileReader();
@@ -890,13 +954,13 @@ Dimas GWM`;
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            const maxW = 1000;
+            const maxW = 800;
             const scale = img.width > maxW ? maxW / img.width : 1;
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve({ nome: file.name, tipo: "image/jpeg", dataUrl: canvas.toDataURL("image/jpeg", 0.72) });
+            resolve({ nome: file.name, tipo: "image/jpeg", dataUrl: canvas.toDataURL("image/jpeg", 0.62) });
           };
           img.src = e.target.result;
         };
@@ -904,16 +968,16 @@ Dimas GWM`;
       });
     }
 
-    async function anexarArquivosRegistro(event) {
+    window.anexarArquivosRegistro = async function(event) {
       const files = Array.from(event.target.files);
       for (const f of files) {
         const item = await lerArquivoComprimido(f);
         anexosTemp.push(item);
       }
       renderAnexosTemp();
-    }
+    };
 
-    function renderAnexosTemp() {
+    window.renderAnexosTemp = function() {
       const box = document.getElementById("preview-anexos-novo");
       box.innerHTML = anexosTemp.map((a, i) => `
         <div class="relative group rounded-lg overflow-hidden border border-slate-300 bg-white h-16 flex items-center justify-center">
@@ -923,9 +987,10 @@ Dimas GWM`;
           <button type="button" onclick="anexosTemp.splice(${i},1); renderAnexosTemp()" class="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">✕</button>
         </div>
       `).join("");
-    }
+    };
+    window.anexosTemp = anexosTemp;
 
-    function salvarEGerarEmail(modo) {
+    window.salvarEGerarEmail = async function(modo) {
       const chassi = document.getElementById("inp-chassi").value.trim();
       const descricao = document.getElementById("inp-descricao").value.trim();
       if (!chassi || !descricao) {
@@ -933,44 +998,55 @@ Dimas GWM`;
         return;
       }
 
-      const novo = {
-        id: Date.now(),
-        data: document.getElementById("inp-data").value,
-        tipo: tipoAtual,
-        modelo: document.getElementById("inp-modelo").value,
-        chassi: chassi,
-        drive: document.getElementById("inp-drive").value.trim(),
-        descricao: descricao,
-        cte: document.getElementById("chk-cte").checked,
-        nfe: document.getElementById("chk-nfe").checked,
-        anexos: [...anexosTemp],
-        okFunilaria: false,
-        okInfo: "",
-        osNumero: "",
-        valorOrcamento: 0,
-        statusPeca: "Não necessita peça",
-        statusRessarcimento: "Pendente envio",
-        protocolo: "",
-        status: "Aguardando GWM",
-        historico: []
-      };
-      registrarLog(novo, `Ocorrência registrada (${novo.modelo}) e e-mail aberto`);
+      const btnApp = document.getElementById("btn-save-app");
+      const btnWeb = document.getElementById("btn-save-web");
+      btnApp.disabled = true;
+      btnWeb.disabled = true;
 
-      registros.unshift(novo);
-      salvarTudo();
-      dispararEmail(novo, modo);
+      try {
+        const novo = {
+          id: Date.now(),
+          data: document.getElementById("inp-data").value,
+          tipo: tipoAtual,
+          modelo: document.getElementById("inp-modelo").value,
+          chassi: chassi,
+          drive: document.getElementById("inp-drive").value.trim(),
+          descricao: descricao,
+          cte: document.getElementById("chk-cte").checked,
+          nfe: document.getElementById("chk-nfe").checked,
+          anexos: [...anexosTemp],
+          okFunilaria: false,
+          okInfo: "",
+          osNumero: "",
+          valorOrcamento: 0,
+          statusPeca: "Não necessita peça",
+          statusRessarcimento: "Pendente envio",
+          protocolo: "",
+          status: "Aguardando GWM",
+          historico: []
+        };
+        registrarLog(novo, `Ocorrência registrada (${novo.modelo}) e salva na nuvem`);
 
-      document.getElementById("inp-chassi").value = "";
-      document.getElementById("inp-descricao").value = "";
-      document.getElementById("inp-drive").value = "";
-      anexosTemp = [];
-      renderAnexosTemp();
-      updateLivePreview();
-      switchTab("planilha");
-    }
+        await salvarRegistroNuvem(novo);
+        dispararEmail(novo, modo);
 
-    // DAR OK (CONFIRMAÇÃO FUNILARIA)
-    function darOKFunilaria(id) {
+        document.getElementById("inp-chassi").value = "";
+        document.getElementById("inp-descricao").value = "";
+        document.getElementById("inp-drive").value = "";
+        anexosTemp.length = 0;
+        renderAnexosTemp();
+        updateLivePreview();
+        switchTab("planilha");
+      } catch (e) {
+        alert("Erro ao salvar na nuvem: " + e.message);
+      } finally {
+        btnApp.disabled = false;
+        btnWeb.disabled = false;
+      }
+    };
+
+    // DAR OK FUNILARIA
+    window.darOKFunilaria = async function(id) {
       const item = registros.find(r => r.id === id);
       if (!item) return;
       const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -980,14 +1056,11 @@ Dimas GWM`;
         item.status = "Aprovado / Em Reparo";
       }
       registrarLog(item, "OK de recebimento confirmado pela Funilaria");
-      salvarTudo();
-      renderPlanilha();
-      renderDashboard();
-      if (modalRegistroId === id) abrirModalDossie(id);
-    }
+      await salvarRegistroNuvem(item);
+    };
 
-    // MODAL DOSSIÊ + FINANCEIRO + TERMO PDF
-    function abrirModalDossie(id) {
+    // MODAL DOSSIÊ
+    window.abrirModalDossie = function(id) {
       const r = registros.find(x => x.id === id);
       if (!r) return;
       modalRegistroId = id;
@@ -1036,9 +1109,9 @@ Dimas GWM`;
       document.getElementById("mod-historico").innerHTML = hist.map(h => `<div>• ${h}</div>`).join("");
 
       document.getElementById("modal-dossie").classList.remove("hidden");
-    }
+    };
 
-    function salvarFinanceiroModal() {
+    window.salvarFinanceiroModal = async function() {
       const r = registros.find(x => x.id === modalRegistroId);
       if (!r) return;
       r.osNumero = document.getElementById("fin-os").value.trim();
@@ -1046,14 +1119,11 @@ Dimas GWM`;
       r.statusPeca = document.getElementById("fin-peca").value;
       r.statusRessarcimento = document.getElementById("fin-ressarcimento").value;
       registrarLog(r, `Financeiro/Peças atualizado: OS "${r.osNumero || "-"}", R$ ${r.valorOrcamento.toFixed(2)}, ${r.statusPeca}, ${r.statusRessarcimento}`);
-      salvarTudo();
-      renderPlanilha();
-      renderDashboard();
-      abrirModalDossie(modalRegistroId);
-      alert("Dados de orçamento, peças e ressarcimento salvos!");
-    }
+      await salvarRegistroNuvem(r);
+      alert("Dados financeiros salvos na nuvem!");
+    };
 
-    function imprimirTermoPDF() {
+    window.imprimirTermoPDF = function() {
       const r = registros.find(x => x.id === modalRegistroId);
       if (!r) return;
       const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
@@ -1103,18 +1173,18 @@ Dimas GWM`;
         </html>
       `);
       win.document.close();
-    }
+    };
 
-    function confirmarOKModal() {
+    window.confirmarOKModal = function() {
       if (modalRegistroId) darOKFunilaria(modalRegistroId);
-    }
+    };
 
-    function avisarWhatsAppModal() {
+    window.avisarWhatsAppModal = function() {
       const r = registros.find(x => x.id === modalRegistroId);
       if (r) avisarWhatsApp(r);
-    }
+    };
 
-    async function anexarNoModal(event) {
+    window.anexarNoModal = async function(event) {
       const r = registros.find(x => x.id === modalRegistroId);
       if (!r) return;
       if (!r.anexos) r.anexos = [];
@@ -1124,18 +1194,16 @@ Dimas GWM`;
         r.anexos.push(item);
       }
       registrarLog(r, `${files.length} arquivo(s) adicionado(s) ao dossiê`);
-      salvarTudo();
-      abrirModalDossie(modalRegistroId);
-      renderPlanilha();
-    }
+      await salvarRegistroNuvem(r);
+    };
 
-    function fecharModalDossie() {
+    window.fecharModalDossie = function() {
       document.getElementById("modal-dossie").classList.add("hidden");
       modalRegistroId = null;
-    }
+    };
 
-    // LOTE COM SELETOR DE MODELO
-    async function processarPastaLote(event) {
+    // LOTE
+    window.processarPastaLote = async function(event) {
       const files = Array.from(event.target.files);
       if (!files.length) return;
 
@@ -1162,7 +1230,7 @@ Dimas GWM`;
         const descExtraida = partesPasta.length > 3 ? partesPasta.slice(3).join(" ") : "Verificar avaria conforme fotos da pasta";
 
         const anexosPasta = [];
-        for (const f of fileList.slice(0, 10)) {
+        for (const f of fileList.slice(0, 6)) {
           if (f.type.startsWith("image/") || f.name.toLowerCase().endsWith(".pdf")) {
             anexosPasta.push(await lerArquivoComprimido(f));
           }
@@ -1183,6 +1251,7 @@ Dimas GWM`;
         });
       }
 
+      window.loteTemp = loteTemp;
       document.getElementById("lote-resultados").classList.remove("hidden");
       document.getElementById("lote-count").textContent = loteTemp.length;
       document.getElementById("lote-cards").innerHTML = loteTemp.map((item, i) => `
@@ -1209,42 +1278,50 @@ Dimas GWM`;
           <input type="text" value="${item.descricao}" onchange="loteTemp[${i}].descricao=this.value" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="Descrição da avaria" />
         </div>
       `).join("");
-    }
+    };
 
-    function salvarLoteNaPlanilha() {
-      loteTemp.forEach((item, idx) => {
-        const reg = {
-          id: Date.now() + idx,
-          data: item.data,
-          tipo: item.tipo,
-          modelo: item.modelo,
-          chassi: item.chassi,
-          drive: "",
-          descricao: item.descricao,
-          cte: item.cte,
-          nfe: item.nfe,
-          anexos: item.anexos || [],
-          okFunilaria: false,
-          okInfo: "",
-          osNumero: "",
-          valorOrcamento: 0,
-          statusPeca: "Não necessita peça",
-          statusRessarcimento: "Pendente envio",
-          protocolo: "",
-          status: "Pendente Envio",
-          historico: []
-        };
-        registrarLog(reg, `Importado em lote da pasta "${item.pasta}"`);
-        registros.unshift(reg);
-      });
-      salvarTudo();
-      document.getElementById("lote-resultados").classList.add("hidden");
-      loteTemp = [];
-      switchTab("planilha");
-    }
+    window.salvarLoteNaPlanilha = async function() {
+      const btn = document.getElementById("btn-salvar-lote");
+      btn.disabled = true;
+      btn.textContent = "⏳ Enviando para nuvem...";
+      try {
+        for (let idx = 0; idx < loteTemp.length; idx++) {
+          const item = loteTemp[idx];
+          const reg = {
+            id: Date.now() + idx,
+            data: item.data,
+            tipo: item.tipo,
+            modelo: item.modelo,
+            chassi: item.chassi,
+            drive: "",
+            descricao: item.descricao,
+            cte: item.cte,
+            nfe: item.nfe,
+            anexos: item.anexos || [],
+            okFunilaria: false,
+            okInfo: "",
+            osNumero: "",
+            valorOrcamento: 0,
+            statusPeca: "Não necessita peça",
+            statusRessarcimento: "Pendente envio",
+            protocolo: "",
+            status: "Pendente Envio",
+            historico: []
+          };
+          registrarLog(reg, `Importado em lote da pasta "${item.pasta}"`);
+          await salvarRegistroNuvem(reg);
+        }
+        document.getElementById("lote-resultados").classList.add("hidden");
+        loteTemp = [];
+        switchTab("planilha");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "✅ Enviar Todos para a Nuvem";
+      }
+    };
 
     // PLANILHA
-    function renderPlanilha() {
+    window.renderPlanilha = function() {
       const busca = document.getElementById("filtro-busca").value.toLowerCase();
       const tipoFiltro = document.getElementById("filtro-tipo").value;
 
@@ -1256,7 +1333,7 @@ Dimas GWM`;
 
       const tbody = document.getElementById("tabela-corpo");
       if (!filtrados.length) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">Nenhum registro na nuvem ainda.</td></tr>`;
         return;
       }
 
@@ -1314,39 +1391,37 @@ Dimas GWM`;
           </tr>
         `;
       }).join("");
-    }
+    };
 
-    function atualizarCampo(id, campo, valor) {
+    window.atualizarCampo = async function(id, campo, valor) {
       const item = registros.find(r => r.id === id);
       if (item) {
         item[campo] = valor;
         registrarLog(item, `Campo "${campo}" alterado para "${valor}"`);
-        salvarTudo();
+        await salvarRegistroNuvem(item);
       }
-    }
+    };
 
-    function avisarWhatsAppLinha(id) {
+    window.avisarWhatsAppLinha = function(id) {
       const item = registros.find(r => r.id === id);
       if (item) avisarWhatsApp(item);
-    }
+    };
 
-    function reenviarEmail(id, modo) {
+    window.reenviarEmail = async function(id, modo) {
       const item = registros.find(r => r.id === id);
       if (item) {
         registrarLog(item, `E-mail Outlook (${modo === "web" ? "Web" : "App"}) aberto`);
-        salvarTudo();
+        await salvarRegistroNuvem(item);
         dispararEmail(item, modo);
       }
-    }
+    };
 
-    function excluirRegistro(id) {
-      if (!confirm("Remover este registro?")) return;
-      registros = registros.filter(r => r.id !== id);
-      salvarTudo();
-      renderPlanilha();
-    }
+    window.excluirRegistro = async function(id) {
+      if (!confirm("Remover este registro da nuvem para todos?")) return;
+      await excluirRegistroNuvem(id);
+    };
 
-    function exportarCSV() {
+    window.exportarCSV = function() {
       if (!registros.length) return alert("Sem registros para exportar.");
       const headers = ["Data", "Tipo", "Modelo", "Chassi", "Descricao", "OS Funilaria", "Valor Orcamento", "Status Pecas", "Ressarcimento GWM", "OK Funilaria", "Confirmado Por", "Protocolo GWM", "Status"];
       const rows = registros.map(r => [
@@ -1365,39 +1440,42 @@ Dimas GWM`;
       link.href = URL.createObjectURL(new Blob([csvContent], { type: "text/csv;charset=utf-8;" }));
       link.download = `Dimas_GWM_Planilha_${new Date().toISOString().slice(0, 10)}.csv`;
       link.click();
-    }
+    };
 
-    // BACKUP DRIVE (.JSON)
-    function fazerBackupJSON() {
+    // BACKUP JSON
+    window.fazerBackupJSON = function() {
       const payload = { dataBackup: new Date().toISOString(), usuarios, registros };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `BACKUP_DIMAS_GWM_${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
-    }
+    };
 
-    function restaurarBackupJSON(event) {
+    window.restaurarBackupJSON = function(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         try {
           const data = JSON.parse(e.target.result);
           if (Array.isArray(data.registros)) {
-            registros = data.registros;
-            if (Array.isArray(data.usuarios)) usuarios = data.usuarios;
-            salvarTudo();
-            renderDashboard();
-            renderPlanilha();
-            alert(`Backup restaurado com sucesso! (${registros.length} veículos carregados)`);
+            for (const reg of data.registros) {
+              await salvarRegistroNuvem(reg);
+            }
+            if (Array.isArray(data.usuarios)) {
+              for (const u of data.usuarios) {
+                await salvarUsuarioNuvem(u);
+              }
+            }
+            alert(`Backup importado para a nuvem com sucesso! (${data.registros.length} veículos)`);
           }
         } catch (err) {
           alert("Arquivo de backup inválido.");
         }
       };
       reader.readAsText(file);
-    }
+    };
 
     // USUÁRIOS
     function renderUsuarios() {
@@ -1409,30 +1487,38 @@ Dimas GWM`;
             <div class="text-[11px] text-slate-500">${u.role === "admin" ? "Controle Geral" : "Analista de Funilaria"}</div>
           </div>
           <div class="flex items-center gap-2">
-            <input type="text" value="${u.login}" onchange="usuarios[${i}].login=this.value.trim(); salvarTudo()" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Login" />
-            <input type="text" value="${u.senha}" onchange="usuarios[${i}].senha=this.value.trim(); salvarTudo()" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Senha" />
-            ${usuarios.length > 1 ? `<button onclick="usuarios.splice(${i},1); salvarTudo(); renderUsuarios()" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg text-xs font-bold">🗑️</button>` : ""}
+            <input type="text" value="${u.login}" onchange="editarUser(${i}, 'login', this.value)" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Login" />
+            <input type="text" value="${u.senha}" onchange="editarUser(${i}, 'senha', this.value)" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Senha" />
+            ${usuarios.length > 1 ? `<button onclick="removerUser('${u.id}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg text-xs font-bold">🗑️</button>` : ""}
           </div>
         </div>
       `).join("");
     }
 
-    function adicionarUsuario(e) {
+    window.editarUser = async function(idx, campo, valor) {
+      usuarios[idx][campo] = valor.trim();
+      await salvarUsuarioNuvem(usuarios[idx]);
+    };
+
+    window.removerUser = async function(id) {
+      await excluirUsuarioNuvem(id);
+    };
+
+    window.adicionarUsuario = async function(e) {
       e.preventDefault();
-      usuarios.push({
-        id: Date.now(),
+      const novoU = {
+        id: "user_" + Date.now(),
         nome: document.getElementById("new-u-nome").value.trim(),
         role: document.getElementById("new-u-role").value,
         login: document.getElementById("new-u-login").value.trim(),
         senha: document.getElementById("new-u-senha").value.trim()
-      });
-      salvarTudo();
+      };
+      await salvarUsuarioNuvem(novoU);
       e.target.reset();
-      renderUsuarios();
-    }
+    };
 
     // DASHBOARD
-    function setPeriod(p) {
+    window.setPeriod = function(p) {
       periodoAtual = p;
       ["all", "month", "7days"].forEach(k => {
         const btn = document.getElementById("period-" + k);
@@ -1441,7 +1527,7 @@ Dimas GWM`;
           : "period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold";
       });
       renderDashboard();
-    }
+    };
 
     function renderDashboard() {
       const agora = new Date();
@@ -1473,7 +1559,7 @@ Dimas GWM`;
       const listaEl = document.getElementById("lista-pendencias");
       const ativos = dados.filter(d => d.status !== "Concluído").slice(0, 8);
       if (!ativos.length) {
-        listaEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">Nenhuma pendência ativa no momento.</div>`;
+        listaEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">Nenhuma pendência ativa na nuvem no momento.</div>`;
       } else {
         listaEl.innerHTML = ativos.map(a => `
           <div class="py-3 flex flex-wrap items-center justify-between gap-2">
@@ -1521,7 +1607,6 @@ Dimas GWM`;
     }
 
     // BOOT
-    document.getElementById("badge-total").textContent = registros.length;
     updateLivePreview();
     aplicarSessao();
   </script>
