@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dimas GWM | Gestão Executiva de Ocorrências 0km</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; color: #0F172A; }
+    .bg-dimas-navy { background-color: #0D1C26; }
+    .bg-dimas-slate { background-color: #162936; }
+    .text-dimas-cyan { color: #00B4D8; }
+    .bg-dimas-cyan { background-color: #00B4D8; }
+    .tab-active { background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%); color: #FFFFFF; box-shadow: 0 4px 14px rgba(0, 180, 216, 0.35); }
+    .card-shadow { box-shadow: 0 4px 20px -2px rgba(13, 28, 38, 0.06); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TELA DE LOGIN -->
+  <div id="login-screen" class="fixed inset-0 z-50 bg-dimas-navy flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
+      <div class="flex items-center justify-center gap-3 bg-[#0D1C26] p-4 rounded-2xl">
+        <svg width="100" height="36" viewBox="0 0 216 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 10H30C39.5 10 45 15.2 45 23C45 30.8 39.5 36 30 36H17L12 41V10ZM18 15.5V30.5H29.5C35.8 30.5 39 27.6 39 23C39 18.4 35.8 15.5 29.5 15.5H18Z" fill="#FFFFFF"/>
+          <rect x="57" y="10" width="6" height="26" fill="#FFFFFF"/>
+          <path d="M77 36V10H83.5L97 26.5L110.5 10H117V36H111V18.5L97 35.2L83 18.5V36H77Z" fill="#FFFFFF"/>
+          <path d="M128 36L143.5 10H149.5L165 36H158.2L154.6 29.8H138.4L134.8 36H128ZM141.4 24.5H151.6L146.5 15.7L141.4 24.5Z" fill="#FFFFFF"/>
+          <path d="M174 31.2L177.6 26.5C180.8 29.2 184.8 30.8 189.6 30.8C194.5 30.8 197.4 28.9 197.4 26.2C197.4 23.7 195.4 22.6 188.4 21.3C180.2 19.8 175.6 17.6 175.6 12.1C175.6 6.8 180.6 3.5 188.2 3.5C194.1 3.5 198.8 5.2 202.4 8L199.1 12.9C196 10.5 192.4 9.1 188.1 9.1C183.7 9.1 181.4 10.9 181.4 13.1C181.4 15.6 183.6 16.7 190.8 18C198.9 19.5 203.2 21.8 203.2 27.1C203.2 32.8 197.8 36.4 189.4 36.4C183.1 36.4 177.8 34.4 174 31.2Z" transform="translate(0, 3)" fill="#FFFFFF"/>
+          <path d="M18 68.5L21.2 64.5C24 67.1 27.4 68.6 31.6 68.6C36.8 68.6 40.2 65.5 40.2 61.1C40.2 56.7 36.8 53.8 31.4 53.8C28.1 53.8 25.6 54.9 23.5 56.6L19.5 54.2L21.2 42H43.5V47.2H26.1L25.2 52.5C27.3 51.3 29.8 50.6 32.8 50.6C40.5 50.6 46 55.2 46 61.8C46 68.8 40.2 74 31.6 74C25.8 74 21.2 71.9 18 68.5Z" fill="#B5B2A8"/>
+          <path d="M67 74C57.6 74 51.5 67.2 51.5 58C51.5 48.8 57.6 42 67 42C76.4 42 82.5 48.8 82.5 58C82.5 67.2 76.4 74 67 74ZM67 68.7C73.1 68.7 76.7 64.2 76.7 58C76.7 51.8 73.1 47.3 67 47.3C60.9 47.3 57.3 51.8 57.3 58C57.3 64.2 60.9 68.7 67 68.7Z" fill="#B5B2A8"/>
+          <path d="M76 75L94 41H99.5L81.5 75H76Z" fill="#B5B2A8"/>
+          <text x="103" y="61" fill="#B5B2A8" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="18" letter-spacing="2">ANOS</text>
+        </svg>
+        <div class="h-7 w-px bg-slate-700"></div>
+        <div class="bg-black px-2.5 py-1.5 rounded-lg">
+          <svg width="130" height="26" viewBox="0 0 336 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="34" cy="32" rx="28" ry="18" stroke="#FFFFFF" stroke-width="3.5"/>
+            <ellipse cx="34" cy="32" rx="23" ry="13.5" stroke="#FFFFFF" stroke-width="1.5"/>
+            <path d="M34 19L29 31V44H33V23L34 19Z" fill="#FFFFFF"/>
+            <path d="M34 19L39 31V44H35V23L34 19Z" fill="#FFFFFF"/>
+            <path d="M27 28C21 29 17 33 17 37C17 41 21 43 27 43V28Z" fill="#FFFFFF"/>
+            <path d="M41 28C47 29 51 33 51 37C51 41 47 43 41 43V28Z" fill="#FFFFFF"/>
+            <text x="72" y="42" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="30" letter-spacing="1.5">GWM</text>
+            <text x="172" y="39" fill="#E2E8F0" font-family="Plus Jakarta Sans, sans-serif" font-weight="400" font-size="17">Hello, tomorrow.</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <h1 class="text-xl font-extrabold text-slate-900">Acesso Corporativo</h1>
+        <p class="text-xs text-slate-500 mt-1">Gestão de Avarias (SLA 72h), Orçamentos & Funilaria 0km</p>
+      </div>
+
+      <form onsubmit="fazerLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Usuário</label>
+          <input type="text" id="login-user" required placeholder="Ex: admin ou funilaria" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Senha</label>
+          <input type="password" id="login-pass" required placeholder="••••••••" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
+        </div>
+        <div id="login-erro" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-xl text-center"></div>
+        <button type="submit" class="w-full bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3 rounded-xl shadow-lg text-sm transition">
+          Entrar no Sistema
+        </button>
+      </form>
+
+      <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-xs space-y-1.5">
+        <div class="font-bold text-slate-700">Acessos Rápidos (Clique para preencher):</div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="preencherLogin('admin')" class="flex-1 bg-white hover:bg-cyan-50 border border-slate-300 rounded-xl p-2 text-left transition">
+            <div class="font-bold text-slate-900">Controle Geral</div>
+            <div class="text-[11px] text-slate-500 font-mono">admin / dimas123</div>
+          </button>
+          <button type="button" onclick="preencherLogin('funilaria')" class="flex-1 bg-white hover:bg-emerald-50 border border-slate-300 rounded-xl p-2 text-left transition">
+            <div class="font-bold text-slate-900">Analista Funilaria</div>
+            <div class="text-[11px] text-slate-500 font-mono">funilaria / funilaria123</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER PRINCIPAL -->
+  <header class="bg-dimas-navy text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="w-full px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- LOGOS -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center bg-[#0D1C26] px-2.5 py-1.5 rounded-lg border border-slate-700/70">
+          <svg width="98" height="36" viewBox="0 0 216 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 10H30C39.5 10 45 15.2 45 23C45 30.8 39.5 36 30 36H17L12 41V10ZM18 15.5V30.5H29.5C35.8 30.5 39 27.6 39 23C39 18.4 35.8 15.5 29.5 15.5H18Z" fill="#FFFFFF"/>
+            <rect x="57" y="10" width="6" height="26" fill="#FFFFFF"/>
+            <path d="M77 36V10H83.5L97 26.5L110.5 10H117V36H111V18.5L97 35.2L83 18.5V36H77Z" fill="#FFFFFF"/>
+            <path d="M128 36L143.5 10H149.5L165 36H158.2L154.6 29.8H138.4L134.8 36H128ZM141.4 24.5H151.6L146.5 15.7L141.4 24.5Z" fill="#FFFFFF"/>
+            <path d="M174 31.2L177.6 26.5C180.8 29.2 184.8 30.8 189.6 30.8C194.5 30.8 197.4 28.9 197.4 26.2C197.4 23.7 195.4 22.6 188.4 21.3C180.2 19.8 175.6 17.6 175.6 12.1C175.6 6.8 180.6 3.5 188.2 3.5C194.1 3.5 198.8 5.2 202.4 8L199.1 12.9C196 10.5 192.4 9.1 188.1 9.1C183.7 9.1 181.4 10.9 181.4 13.1C181.4 15.6 183.6 16.7 190.8 18C198.9 19.5 203.2 21.8 203.2 27.1C203.2 32.8 197.8 36.4 189.4 36.4C183.1 36.4 177.8 34.4 174 31.2Z" transform="translate(0, 3)" fill="#FFFFFF"/>
+            <path d="M18 68.5L21.2 64.5C24 67.1 27.4 68.6 31.6 68.6C36.8 68.6 40.2 65.5 40.2 61.1C40.2 56.7 36.8 53.8 31.4 53.8C28.1 53.8 25.6 54.9 23.5 56.6L19.5 54.2L21.2 42H43.5V47.2H26.1L25.2 52.5C27.3 51.3 29.8 50.6 32.8 50.6C40.5 50.6 46 55.2 46 61.8C46 68.8 40.2 74 31.6 74C25.8 74 21.2 71.9 18 68.5Z" fill="#B5B2A8"/>
+            <path d="M67 74C57.6 74 51.5 67.2 51.5 58C51.5 48.8 57.6 42 67 42C76.4 42 82.5 48.8 82.5 58C82.5 67.2 76.4 74 67 74ZM67 68.7C73.1 68.7 76.7 64.2 76.7 58C76.7 51.8 73.1 47.3 67 47.3C60.9 47.3 57.3 51.8 57.3 58C57.3 64.2 60.9 68.7 67 68.7Z" fill="#B5B2A8"/>
+            <path d="M76 75L94 41H99.5L81.5 75H76Z" fill="#B5B2A8"/>
+            <text x="103" y="61" fill="#B5B2A8" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="18" letter-spacing="2">ANOS</text>
+          </svg>
+        </div>
+
+        <div class="flex items-center bg-black px-2.5 py-1.5 rounded-lg border border-slate-700/70">
+          <svg width="146" height="28" viewBox="0 0 336 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="34" cy="32" rx="28" ry="18" stroke="#FFFFFF" stroke-width="3.5"/>
+            <ellipse cx="34" cy="32" rx="23" ry="13.5" stroke="#FFFFFF" stroke-width="1.5"/>
+            <path d="M34 19L29 31V44H33V23L34 19Z" fill="#FFFFFF"/>
+            <path d="M34 19L39 31V44H35V23L34 19Z" fill="#FFFFFF"/>
+            <path d="M27 28C21 29 17 33 17 37C17 41 21 43 27 43V28Z" fill="#FFFFFF"/>
+            <path d="M41 28C47 29 51 33 51 37C51 41 47 43 41 43V28Z" fill="#FFFFFF"/>
+            <text x="72" y="42" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="30" letter-spacing="1.5">GWM</text>
+            <text x="172" y="39" fill="#E2E8F0" font-family="Plus Jakarta Sans, sans-serif" font-weight="400" font-size="17">Hello, tomorrow.</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- ABAS -->
+      <nav class="flex flex-wrap items-center gap-1 bg-dimas-slate p-1.5 rounded-xl border border-slate-700/60">
+        <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="tab-btn tab-active px-3 py-1.5 rounded-lg text-xs font-semibold transition">📊 Dashboard</button>
+        <button onclick="switchTab('novo')" id="btn-tab-novo" class="tab-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">➕ Novo Registro</button>
+        <button onclick="switchTab('lote')" id="btn-tab-lote" class="tab-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">📁 Importar Pasta</button>
+        <button onclick="switchTab('planilha')" id="btn-tab-planilha" class="tab-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">📋 Planilha (<span id="badge-total">0</span>)</button>
+        <button onclick="switchTab('usuarios')" id="btn-tab-usuarios" class="tab-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">🔐 Usuários & Senhas</button>
+      </nav>
+
+      <!-- BACKUP & USUÁRIO ATIVO -->
+      <div class="flex items-center gap-2">
+        <button onclick="fazerBackupJSON()" title="Baixar arquivo único com dados e fotos para salvar no Google Drive" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          ☁️ Backup Drive
+        </button>
+        <label title="Carregar arquivo de backup salvo" class="bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+          📥 Restaurar
+          <input type="file" accept=".json" onchange="restaurarBackupJSON(event)" class="hidden" />
+        </label>
+        <div class="h-6 w-px bg-slate-700 mx-0.5"></div>
+        <div class="text-right hidden sm:block">
+          <div id="user-display-name" class="text-xs font-bold text-white">Controle Geral</div>
+          <div id="user-display-role" class="text-[10px] text-cyan-400">Administrador</div>
+        </div>
+        <button onclick="logout()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
+          Trocar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="w-full px-4 sm:px-8 py-6 flex-1">
+
+    <!-- ABA 1: DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Painel Executivo — Dimas GWM</h2>
+          <p class="text-sm text-slate-500">Controle de avarias (SLA 72h), orçamentos de funilaria, peças e ressarcimento</p>
+        </div>
+        <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 card-shadow">
+          <button onclick="setPeriod('all')" id="period-all" class="period-btn bg-dimas-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Todos</button>
+          <button onclick="setPeriod('month')" id="period-month" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Este Mês</button>
+          <button onclick="setPeriod('7days')" id="period-7days" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Últimos 7 dias</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Ocorrências</span>
+            <span class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">🚗</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-total" class="text-3xl font-extrabold text-slate-900">0</span>
+            <span id="kpi-split" class="text-xs font-medium text-slate-500">0 avarias • 0 faltantes</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Aguardando OK Funilaria</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">🔧</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-sem-ok" class="text-3xl font-extrabold text-amber-600">0</span>
+            <span id="kpi-com-ok" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">0 confirmados</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Orçamentos em Aberto</span>
+            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">💰</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-valor-total" class="text-2xl font-extrabold text-indigo-600">R$ 0</span>
+            <span id="kpi-aguardando" class="text-xs text-slate-500">0 aguardando GWM</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Concluídos</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">✅</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-concluidos" class="text-3xl font-extrabold text-emerald-600">0</span>
+            <span class="text-xs text-slate-500">processos finalizados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRÁFICOS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Perfil das Ocorrências</h3>
+          <div class="h-52 flex items-center justify-center"><canvas id="chartTipo"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Incidência por Modelo GWM</h3>
+          <div class="h-52"><canvas id="chartModelo"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Status dos Processos</h3>
+          <div class="h-52"><canvas id="chartStatus"></canvas></div>
+        </div>
+      </div>
+
+      <!-- FILA DE ATENÇÃO -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Fila Operacional & Confirmação Funilaria</h3>
+            <p class="text-xs text-slate-500">Dê o "OK", gere o Termo em PDF, avise a funilaria no WhatsApp ou dispare o e-mail no Outlook</p>
+          </div>
+          <button onclick="switchTab('novo')" id="btn-dash-novo" class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">
+            + Registrar Novo
+          </button>
+        </div>
+        <div id="lista-pendencias" class="divide-y divide-slate-100"></div>
+      </div>
+    </section>
+
+    <!-- ABA 2: NOVO REGISTRO & ARMAZÉM DE FOTOS -->
+    <section id="tab-novo" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 class="text-lg font-bold text-slate-900">Novo Registro de Ocorrência 0km</h2>
+            <p class="text-xs text-slate-500">Anexe as fotos e documentos direto no sistema e gere o e-mail do Outlook</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">1. Tipo de Ocorrência</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" onclick="setTipoOcorrencia('Avaria')" id="btn-tipo-avaria" class="p-3.5 rounded-xl border-2 border-[#00B4D8] bg-cyan-50/60 text-left transition">
+                <div class="font-bold text-sm text-slate-900">🛠️ Avaria de Transporte</div>
+                <div class="text-[11px] text-slate-600 mt-0.5">Inclui Jean Mingarini em cópia</div>
+              </button>
+              <button type="button" onclick="setTipoOcorrencia('Item Faltante')" id="btn-tipo-faltante" class="p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 text-left transition">
+                <div class="font-bold text-sm text-slate-900">📦 Item Faltante</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Manual, tapete, carregador, etc.</div>
+              </button>
+            </div>
+          </div>
+
+          <div id="box-tags-faltante" class="hidden bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5">
+            <span class="block text-xs font-bold text-amber-800 mb-2">Adicionar item faltante:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="addTagItem('Manual do Proprietário')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Manual</button>
+              <button type="button" onclick="addTagItem('Jogo de Tapetes')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Jogo de Tapetes</button>
+              <button type="button" onclick="addTagItem('Carregador Portátil')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Carregador Portátil</button>
+              <button type="button" onclick="addTagItem('Chave Reserva')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Chave Reserva</button>
+              <button type="button" onclick="addTagItem('Kit Reparo / Estepe')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Kit Reparo</button>
+              <button type="button" onclick="addTagItem('Antena / Calotas')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-medium">+ Antena/Calotas</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Data do Recebimento *</label>
+              <input type="date" id="inp-data" oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Modelo / Versão GWM *</label>
+              <select id="inp-modelo" onchange="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none bg-white"></select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                Chassi Completo (VIN) * <span id="chassi-badge" class="ml-1 text-[11px] font-bold text-cyan-600"></span>
+              </label>
+              <input type="text" id="inp-chassi" maxlength="17" placeholder="Ex: 9BWH6123456789012" oninput="this.value=this.value.toUpperCase(); updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-mono uppercase focus:border-[#00B4D8] focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Link da Pasta no Google Drive (Opcional)</label>
+              <input type="url" id="inp-drive" placeholder="https://drive.google.com/..." oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label id="lbl-descricao" class="block text-xs font-bold text-slate-700 mb-1">Peça Afetada & Descrição da Avaria *</label>
+            <textarea id="inp-descricao" rows="3" placeholder="Ex: Risco profundo no para-choque dianteiro lado esquerdo (ressalva assinada no CT-e)" oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none"></textarea>
+          </div>
+
+          <!-- COFRE DE FOTOS E DOCUMENTOS -->
+          <div class="bg-cyan-50/40 rounded-xl p-4 border border-cyan-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase text-cyan-900">Armazém Interno de Fotos & Docs (CT-e / NF-e)</span>
+              <label class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition">
+                + Anexar Fotos / PDFs
+                <input type="file" multiple accept="image/*,.pdf" onchange="anexarArquivosRegistro(event)" class="hidden" />
+              </label>
+            </div>
+            <div id="preview-anexos-novo" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2">
+            <div class="text-xs font-bold uppercase text-slate-600">Checklist Obrigatório</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-chassi" checked onchange="updateLivePreview()"> Foto Chassi / Etiqueta VIN</label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-angulos" checked onchange="updateLivePreview()"> 4 Ângulos (Frente/Tras/Lados)</label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-detalhe" checked onchange="updateLivePreview()"> Foto Aberta e Fechada do Dano</label>
+              <label class="flex items-center gap-2 cursor-pointer font-semibold text-indigo-700"><input type="checkbox" id="chk-cte" checked onchange="updateLivePreview()"> CT-e Digitalizado</label>
+              <label class="flex items-center gap-2 cursor-pointer font-semibold text-indigo-700"><input type="checkbox" id="chk-nfe" checked onchange="updateLivePreview()"> NF-e Digitalizada</label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button type="button" onclick="salvarEGerarEmail('app')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
+              💾 Salvar e Abrir Outlook App
+            </button>
+            <button type="button" onclick="salvarEGerarEmail('web')" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm">
+              🌐 Salvar e Abrir Outlook Web (Aba)
+            </button>
+          </div>
+        </div>
+
+        <!-- PRÉVIA OUTLOOK -->
+        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span class="text-sm font-bold text-slate-900">Prévia Automática Outlook</span>
+              <span id="badge-jean" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800">+ Jean Mingarini em CC</span>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs space-y-1.5">
+              <div><span class="font-bold text-slate-500">Pasta Drive:</span> <span id="prev-pasta" class="font-mono font-bold text-slate-800"></span></div>
+              <div><span class="font-bold text-slate-500">Para:</span> <span class="text-slate-700">atendimento.veiculos@gwmmotors.com.br</span></div>
+              <div><span class="font-bold text-slate-500">Cc:</span> <span id="prev-cc" class="text-slate-700"></span></div>
+              <div><span class="font-bold text-slate-500">Assunto:</span> <span id="prev-assunto" class="font-semibold text-slate-900"></span></div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Corpo do E-mail</label>
+              <textarea id="prev-corpo" rows="13" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-700 focus:outline-none"></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2">
+            <button type="button" onclick="copiarCorpoEmail()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-2 rounded-xl text-xs transition">
+              📋 Copiar
+            </button>
+            <button type="button" onclick="abrirOutlookAtual('app')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition">
+              ✉️ App PC
+            </button>
+            <button type="button" onclick="abrirOutlookAtual('web')" class="bg-dimas-cyan hover:bg-cyan-600 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition">
+              🌐 Outlook Web
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 3: IMPORTAR PASTA EM LOTE -->
+    <section id="tab-lote" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Importação de Pasta em Lote</h2>
+          <p class="text-xs text-slate-500">Selecione a pasta do computador, confira ou ajuste o <strong>Modelo GWM</strong>, o tipo e a descrição de cada veículo e jogue na planilha.</p>
+        </div>
+
+        <label class="border-2 border-dashed border-cyan-400 bg-cyan-50/30 hover:bg-cyan-50/70 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition">
+          <span class="text-4xl mb-2">📂</span>
+          <span class="font-bold text-sm text-slate-800">Clique para selecionar a pasta do computador</span>
+          <span class="text-xs text-slate-500 mt-1">Anexa as fotos e documentos automaticamente e permite selecionar o modelo exato de cada carro</span>
+          <input type="file" webkitdirectory directory multiple onchange="processarPastaLote(event)" class="hidden" />
+        </label>
+
+        <div id="lote-resultados" class="hidden space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <h3 class="font-bold text-sm text-slate-800">Veículos Detectados (<span id="lote-count">0</span>) — Revise o Modelo antes de salvar:</h3>
+            <button onclick="salvarLoteNaPlanilha()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+              ✅ Jogar Todos na Planilha
+            </button>
+          </div>
+          <div id="lote-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 4: PLANILHA DE CONTROLE -->
+    <section id="tab-planilha" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Planilha de Controle Dimas GWM</h2>
+            <p class="text-xs text-slate-500">Controle de SLA 72h, Dossiê de Fotos, Orçamento/OS, Ressarcimento GWM e Confirmação OK</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="filtro-busca" placeholder="Buscar chassi ou modelo..." oninput="renderPlanilha()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-[#00B4D8] focus:outline-none" />
+            <select id="filtro-tipo" onchange="renderPlanilha()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white">
+              <option value="Todos">Todos os Tipos</option>
+              <option value="Avaria">Apenas Avarias</option>
+              <option value="Item Faltante">Apenas Itens Faltantes</option>
+            </select>
+            <button onclick="exportarCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+              <span>📥</span> Exportar Excel (.CSV)
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-dimas-navy text-white uppercase tracking-wider text-[11px]">
+                <th class="p-3">Data / SLA 72h</th>
+                <th class="p-3">Tipo</th>
+                <th class="p-3">Modelo GWM</th>
+                <th class="p-3">Chassi</th>
+                <th class="p-3">Descrição</th>
+                <th class="p-3">Dossiê / Orçam.</th>
+                <th class="p-3">OK Funilaria</th>
+                <th class="p-3">Protocolo</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-corpo" class="divide-y divide-slate-200 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 5: USUÁRIOS & SENHAS -->
+    <section id="tab-usuarios" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-4">
+          <h2 class="text-lg font-bold text-slate-900">Cadastrar Novo Usuário</h2>
+          <p class="text-xs text-slate-500">Crie acessos individuais para a equipe da Dimas GWM</p>
+          <form onsubmit="adicionarUsuario(event)" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo</label>
+              <input type="text" id="new-u-nome" required placeholder="Ex: Carlos Silva" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Perfil de Acesso</label>
+              <select id="new-u-role" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white">
+                <option value="admin">Controle Geral (Lança Avarias + Configura)</option>
+                <option value="funilaria">Analista de Funilaria (Dá OK + Orçamento/Reparo)</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Login</label>
+                <input type="text" id="new-u-login" required placeholder="Ex: carlos.funilaria" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-mono" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Senha</label>
+                <input type="text" id="new-u-senha" required placeholder="Ex: gwm2026" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-mono" />
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-dimas-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition">
+              + Salvar Usuário
+            </button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-4">
+          <h2 class="text-lg font-bold text-slate-900">Usuários Ativos & Alteração de Senhas</h2>
+          <p class="text-xs text-slate-500">Edite logins e senhas diretamente na tabela abaixo</p>
+          <div id="lista-usuarios" class="divide-y divide-slate-200"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DOSSIÊ DO VEÍCULO (FOTOS + OK FUNILARIA + ORÇAMENTO/OS + TERMO PDF + HISTÓRICO) -->
+  <div id="modal-dossie" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl space-y-5">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div>
+          <span id="mod-tipo" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700">Avaria</span>
+          <h3 id="mod-titulo" class="text-lg font-extrabold text-slate-900 mt-1">Haval H6 — Chassi #123456</h3>
+          <p id="mod-subtitulo" class="text-xs text-slate-500"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="imprimirTermoPDF()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition">
+            🖨️ Gerar Ficha / Termo PDF
+          </button>
+          <button onclick="fecharModalDossie()" class="text-slate-400 hover:text-slate-700 text-xl font-bold px-2">✕</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
+        <div class="font-bold text-slate-700">Descrição da Ocorrência:</div>
+        <p id="mod-descricao" class="text-slate-800 text-sm"></p>
+      </div>
+
+      <!-- BLOCO CONFIRMAÇÃO FUNILARIA + WHATSAPP -->
+      <div id="mod-box-ok" class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div class="text-xs font-bold text-emerald-900">Status de Recebimento na Funilaria</div>
+          <div id="mod-ok-info" class="text-xs text-emerald-700 mt-0.5">Aguardando confirmação do Analista de Funilaria</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="avisarWhatsAppModal()" class="bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow transition">
+            💬 Avisar Funilaria (WhatsApp)
+          </button>
+          <button id="mod-btn-ok" onclick="confirmarOKModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+            👍 Dar OK (Confirmar)
+          </button>
+        </div>
+      </div>
+
+      <!-- BLOCO ORÇAMENTO, PEÇAS & RESSARCIMENTO GWM -->
+      <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase text-indigo-950">Controle de Orçamento, Peças & Ressarcimento GWM</span>
+          <button onclick="salvarFinanceiroModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+            💾 Salvar Dados Financeiros
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nº Ordem Serviço (OS)</label>
+            <input type="text" id="fin-os" placeholder="Ex: OS-45890" class="w-full rounded-xl border border-slate-300 px-3 py-2 bg-white font-mono" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Valor Orçamento (R$)</label>
+            <input type="number" step="0.01" id="fin-valor" placeholder="0,00" class="w-full rounded-xl border border-slate-300 px-3 py-2 bg-white font-mono" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Status de Peças</label>
+            <select id="fin-peca" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 bg-white font-semibold">
+              <option value="Não necessita peça">Não necessita peça</option>
+              <option value="Aguardando pedido">Aguardando pedido</option>
+              <option value="Peça pedida (GWM)">Peça pedida (GWM)</option>
+              <option value="Peça no pátio">Peça no pátio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ressarcimento GWM</label>
+            <select id="fin-ressarcimento" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 bg-white font-semibold">
+              <option value="Pendente envio">Pendente envio</option>
+              <option value="Em análise GWM">Em análise GWM</option>
+              <option value="Aprovado GWM">Aprovado GWM</option>
+              <option value="Pago / Ressarcido">Pago / Ressarcido</option>
+              <option value="Negado">Negado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALERIA DE FOTOS E PDFS -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase text-slate-600">Fotos & Documentos Anexados (<span id="mod-qtd-anexos">0</span>)</span>
+          <label class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
+            + Adicionar Mais Arquivos
+            <input type="file" multiple accept="image/*,.pdf" onchange="anexarNoModal(event)" class="hidden" />
+          </label>
+        </div>
+        <div id="mod-galeria" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- LINHA DO TEMPO / AUDITORIA -->
+      <div class="border-t border-slate-100 pt-4 space-y-2">
+        <div class="text-xs font-bold uppercase text-slate-500">Histórico / Auditoria do Processo</div>
+        <div id="mod-historico" class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const EMAIL_TO = "atendimento.veiculos@gwmmotors.com.br";
+    const CC_BASE = ["adalto.paes@dimasgwm.com.br", "jose.gularte@dimasgwm.com.br", "marco.wasconcellos@dimas.com.br"];
+    const EMAIL_JEAN = "jean.mingarini@dimas.com.br";
+
+    const MODELOS_GWM = [
+      "Haval H6 HEV2",
+      "Haval H6 PHEV19",
+      "Haval H6 PHEV34",
+      "Haval H6 GT",
+      "Ora 03 Skin",
+      "Ora 03 GT",
+      "Tank 300",
+      "Haval H9",
+      "Poer",
+      "Outro Modelo GWM"
+    ];
+
+    const DEFAULT_USERS = [
+      { id: 1, nome: "Controle Geral (Logística)", login: "admin", senha: "dimas123", role: "admin" },
+      { id: 2, nome: "Analista de Funilaria", login: "funilaria", senha: "funilaria123", role: "funilaria" }
+    ];
+
+    let usuarios = JSON.parse(localStorage.getItem("dimas_gwm_users_v3") || JSON.stringify(DEFAULT_USERS));
+    let usuarioLogado = JSON.parse(sessionStorage.getItem("dimas_gwm_session_v3") || "null");
+    let registros = JSON.parse(localStorage.getItem("dimas_gwm_ocorrencias_v3") || "[]");
+
+    let tipoAtual = "Avaria";
+    let periodoAtual = "all";
+    let anexosTemp = [];
+    let loteTemp = [];
+    let modalRegistroId = null;
+    let charts = {};
+
+    document.getElementById("inp-modelo").innerHTML = MODELOS_GWM.map(m => `<option value="${m}">${m}</option>`).join("");
+    document.getElementById("inp-data").value = new Date().toISOString().split("T")[0];
+
+    function detectarModeloPorTexto(texto) {
+      const t = (texto || "").toLowerCase();
+      if (t.includes("ora") && t.includes("gt")) return "Ora 03 GT";
+      if (t.includes("ora") || t.includes("skin")) return "Ora 03 Skin";
+      if (t.includes("gt")) return "Haval H6 GT";
+      if (t.includes("phev34") || t.includes("phev 34")) return "Haval H6 PHEV34";
+      if (t.includes("phev19") || t.includes("phev 19") || t.includes("phev")) return "Haval H6 PHEV19";
+      if (t.includes("tank")) return "Tank 300";
+      if (t.includes("h9")) return "Haval H9";
+      if (t.includes("poer")) return "Poer";
+      return "Haval H6 HEV2";
+    }
+
+    function salvarTudo() {
+      try {
+        localStorage.setItem("dimas_gwm_ocorrencias_v3", JSON.stringify(registros));
+        localStorage.setItem("dimas_gwm_users_v3", JSON.stringify(usuarios));
+      } catch (e) {
+        alert("Aviso: Limite de memória do navegador atingido pelas fotos. Use o botão 'Backup Drive' no topo para salvar tudo com segurança!");
+      }
+      document.getElementById("badge-total").textContent = registros.length;
+    }
+
+    function registrarLog(item, acao) {
+      if (!item.historico) item.historico = [];
+      const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      const autor = usuarioLogado ? usuarioLogado.nome : "Sistema";
+      item.historico.unshift(`${agora} — ${acao} (${autor})`);
+    }
+
+    // FAROL SLA 72H
+    function getBadgeSLA(dataStr, status) {
+      if (status === "Concluído" || !dataStr) return "";
+      const rec = new Date(dataStr + "T00:00:00");
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const diffDias = Math.floor((hoje - rec) / (1000 * 60 * 60 * 24));
+      if (diffDias <= 0) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">🟢 No Prazo (0-24h)</span>`;
+      if (diffDias === 1) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[10px] font-bold">🔵 24h-48h (SLA 72h)</span>`;
+      if (diffDias === 2) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold">🟡 Último Dia (48h-72h)</span>`;
+      return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d (SLA 72h Estourado)</span>`;
+    }
+
+    // LOGIN & PERMISSÕES
+    function preencherLogin(u) {
+      const found = usuarios.find(x => x.login === u);
+      if (found) {
+        document.getElementById("login-user").value = found.login;
+        document.getElementById("login-pass").value = found.senha;
+      }
+    }
+
+    function fazerLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById("login-user").value.trim();
+      const p = document.getElementById("login-pass").value.trim();
+      const found = usuarios.find(x => x.login === u && x.senha === p);
+      if (!found) {
+        const err = document.getElementById("login-erro");
+        err.textContent = "Usuário ou senha incorretos.";
+        err.classList.remove("hidden");
+        return;
+      }
+      usuarioLogado = found;
+      sessionStorage.setItem("dimas_gwm_session_v3", JSON.stringify(found));
+      aplicarSessao();
+    }
+
+    function logout() {
+      sessionStorage.removeItem("dimas_gwm_session_v3");
+      usuarioLogado = null;
+      document.getElementById("login-screen").classList.remove("hidden");
+    }
+
+    function aplicarSessao() {
+      if (!usuarioLogado) {
+        document.getElementById("login-screen").classList.remove("hidden");
+        return;
+      }
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("user-display-name").textContent = usuarioLogado.nome;
+      document.getElementById("user-display-role").textContent = usuarioLogado.role === "admin" ? "Controle Geral" : "Analista Funilaria";
+
+      const isAdmin = usuarioLogado.role === "admin";
+      document.getElementById("btn-tab-novo").classList.toggle("hidden", !isAdmin);
+      document.getElementById("btn-tab-lote").classList.toggle("hidden", !isAdmin);
+      document.getElementById("btn-tab-usuarios").classList.toggle("hidden", !isAdmin);
+      document.getElementById("btn-dash-novo").classList.toggle("hidden", !isAdmin);
+
+      switchTab("dashboard");
+    }
+
+    function switchTab(tab) {
+      ["dashboard", "novo", "lote", "planilha", "usuarios"].forEach(t => {
+        document.getElementById("tab-" + t).classList.add("hidden");
+        const btn = document.getElementById("btn-tab-" + t);
+        btn.classList.remove("tab-active");
+        btn.classList.add("text-slate-300");
+      });
+      document.getElementById("tab-" + tab).classList.remove("hidden");
+      const activeBtn = document.getElementById("btn-tab-" + tab);
+      activeBtn.classList.add("tab-active");
+      activeBtn.classList.remove("text-slate-300");
+
+      if (tab === "dashboard") renderDashboard();
+      if (tab === "planilha") renderPlanilha();
+      if (tab === "novo") updateLivePreview();
+      if (tab === "usuarios") renderUsuarios();
+    }
+
+    // OCORRÊNCIA & OUTLOOK
+    function setTipoOcorrencia(tipo) {
+      tipoAtual = tipo;
+      const btnAvaria = document.getElementById("btn-tipo-avaria");
+      const btnFaltante = document.getElementById("btn-tipo-faltante");
+      const boxTags = document.getElementById("box-tags-faltante");
+      const lblDesc = document.getElementById("lbl-descricao");
+
+      if (tipo === "Avaria") {
+        btnAvaria.className = "p-3.5 rounded-xl border-2 border-[#00B4D8] bg-cyan-50/60 text-left transition";
+        btnFaltante.className = "p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 text-left transition";
+        boxTags.classList.add("hidden");
+        lblDesc.textContent = "Peça Afetada & Descrição da Avaria *";
+      } else {
+        btnFaltante.className = "p-3.5 rounded-xl border-2 border-amber-500 bg-amber-50/60 text-left transition";
+        btnAvaria.className = "p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 text-left transition";
+        boxTags.classList.remove("hidden");
+        lblDesc.textContent = "Itens Faltantes Identificados na Descarga *";
+      }
+      updateLivePreview();
+    }
+
+    function addTagItem(item) {
+      const el = document.getElementById("inp-descricao");
+      const val = el.value.trim();
+      el.value = val ? val + ", " + item : "Faltando: " + item;
+      updateLivePreview();
+    }
+
+    function getCCList(tipo) {
+      return tipo === "Avaria" ? [...CC_BASE, EMAIL_JEAN] : [...CC_BASE];
+    }
+
+    function montarDadosEmail(obj) {
+      const chassi = (obj.chassi || "000000").toUpperCase();
+      const ult6 = chassi.slice(-6);
+      const dataBR = obj.data ? obj.data.split("-").reverse().join("/") : "";
+      const isAvaria = obj.tipo === "Avaria";
+      const tagAssunto = isAvaria ? "[AVARIA TRANSPORTE 0KM]" : "[ITEM FALTANTE 0KM]";
+      const assunto = `${tagAssunto} Dimas GWM - ${obj.modelo} - Chassi: ${ult6}`;
+      const pasta = `${obj.data || "2026-01-01"}_${obj.modelo.replace(/\s+/g, "")}_${ult6}`;
+
+      const docsTexto = [
+        obj.cte ? "CT-e digitalizado" : null,
+        obj.nfe ? "NF-e digitalizada" : null
+      ].filter(Boolean).join(" + ") || "Documentos em conferência";
+
+      const driveLinha = obj.drive ? `\n- Link Pasta Google Drive: ${obj.drive}` : "";
+
+      const corpo = `Olá, equipe de Atendimento GWM,
+
+Segue registro formal de ${isAvaria ? "avaria identificada" : "item faltante identificado"} no ato do recebimento de veículo 0km (descarga de carreta) na concessionária Dimas GWM.
+
+DADOS DO VEÍCULO:
+- Concessionária: Dimas GWM
+- Data do Recebimento: ${dataBR}
+- Modelo / Versão: ${obj.modelo}
+- Chassi Completo (VIN): ${chassi}
+- Tipo de Ocorrência: ${obj.tipo}${driveLinha}
+
+DESCRIÇÃO DO OCORRIDO:
+- ${obj.descricao || "[Descrever avaria ou item faltante]"}
+
+EVIDÊNCIAS E DOCUMENTOS:
+- Fotos obrigatórias do veículo e evidência anexas.
+- Documentação fiscal: ${docsTexto}.
+
+Ficamos no aguardo do protocolo e orientações para atendimento.
+
+Atenciosamente,
+Equipe Logística / Pós-Venda
+Dimas GWM`;
+
+      return { to: EMAIL_TO, cc: getCCList(obj.tipo).join(", "), assunto, corpo, pasta, ult6 };
+    }
+
+    function updateLivePreview() {
+      const chassi = document.getElementById("inp-chassi").value.trim();
+      document.getElementById("chassi-badge").textContent = chassi.length >= 6 ? `(Final: ${chassi.slice(-6)})` : "";
+
+      const obj = {
+        tipo: tipoAtual,
+        data: document.getElementById("inp-data").value,
+        modelo: document.getElementById("inp-modelo").value,
+        chassi: chassi,
+        drive: document.getElementById("inp-drive").value.trim(),
+        descricao: document.getElementById("inp-descricao").value.trim(),
+        cte: document.getElementById("chk-cte").checked,
+        nfe: document.getElementById("chk-nfe").checked
+      };
+
+      const mail = montarDadosEmail(obj);
+      document.getElementById("prev-pasta").textContent = mail.pasta;
+      document.getElementById("prev-cc").textContent = mail.cc;
+      document.getElementById("prev-assunto").textContent = mail.assunto;
+      document.getElementById("prev-corpo").value = mail.corpo;
+
+      const badgeJean = document.getElementById("badge-jean");
+      if (tipoAtual === "Avaria") {
+        badgeJean.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800";
+        badgeJean.textContent = "+ Jean Mingarini em CC";
+      } else {
+        badgeJean.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
+        badgeJean.textContent = "Sem Jean Mingarini (Item Faltante)";
+      }
+    }
+
+    function dispararEmail(obj, modo = "app") {
+      const mail = montarDadosEmail(obj);
+      if (modo === "web") {
+        const webUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(mail.to)}&cc=${encodeURIComponent(mail.cc)}&subject=${encodeURIComponent(mail.assunto)}&body=${encodeURIComponent(mail.corpo)}`;
+        window.open(webUrl, "_blank");
+      } else {
+        const appUrl = `mailto:${encodeURIComponent(mail.to)}?cc=${encodeURIComponent(mail.cc)}&subject=${encodeURIComponent(mail.assunto)}&body=${encodeURIComponent(mail.corpo)}`;
+        window.open(appUrl, "_blank");
+      }
+    }
+
+    function avisarWhatsApp(item) {
+      const texto = `Olá! Novo registro *Dimas GWM*:\n• *Modelo:* ${item.modelo}\n• *Chassi:* ${item.chassi}\n• *Tipo:* ${item.tipo}\n• *Ocorrência:* ${item.descricao}\n\nJá está no sistema para conferência e dar o *OK* de recebimento.`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    }
+
+    function copiarCorpoEmail() {
+      navigator.clipboard.writeText(document.getElementById("prev-corpo").value);
+      alert("Texto copiado! Cole no Outlook com Ctrl+V.");
+    }
+
+    function abrirOutlookAtual(modo) {
+      const obj = {
+        tipo: tipoAtual,
+        data: document.getElementById("inp-data").value,
+        modelo: document.getElementById("inp-modelo").value,
+        chassi: document.getElementById("inp-chassi").value.trim(),
+        drive: document.getElementById("inp-drive").value.trim(),
+        descricao: document.getElementById("inp-descricao").value.trim(),
+        cte: document.getElementById("chk-cte").checked,
+        nfe: document.getElementById("chk-nfe").checked
+      };
+      dispararEmail(obj, modo);
+    }
+
+    // COMPRESSÃO E ANEXO DE FOTOS/DOCS
+    function lerArquivoComprimido(file) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          if (!file.type.startsWith("image/")) {
+            resolve({ nome: file.name, tipo: file.type, dataUrl: e.target.result });
+            return;
+          }
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxW = 1000;
+            const scale = img.width > maxW ? maxW / img.width : 1;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve({ nome: file.name, tipo: "image/jpeg", dataUrl: canvas.toDataURL("image/jpeg", 0.72) });
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function anexarArquivosRegistro(event) {
+      const files = Array.from(event.target.files);
+      for (const f of files) {
+        const item = await lerArquivoComprimido(f);
+        anexosTemp.push(item);
+      }
+      renderAnexosTemp();
+    }
+
+    function renderAnexosTemp() {
+      const box = document.getElementById("preview-anexos-novo");
+      box.innerHTML = anexosTemp.map((a, i) => `
+        <div class="relative group rounded-lg overflow-hidden border border-slate-300 bg-white h-16 flex items-center justify-center">
+          ${a.tipo.startsWith("image/")
+            ? `<img src="${a.dataUrl}" class="w-full h-full object-cover" />`
+            : `<span class="text-[10px] font-bold text-indigo-700 px-1 text-center truncate">📄 ${a.nome}</span>`}
+          <button type="button" onclick="anexosTemp.splice(${i},1); renderAnexosTemp()" class="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">✕</button>
+        </div>
+      `).join("");
+    }
+
+    function salvarEGerarEmail(modo) {
+      const chassi = document.getElementById("inp-chassi").value.trim();
+      const descricao = document.getElementById("inp-descricao").value.trim();
+      if (!chassi || !descricao) {
+        alert("Preencha o Chassi e a Descrição antes de salvar.");
+        return;
+      }
+
+      const novo = {
+        id: Date.now(),
+        data: document.getElementById("inp-data").value,
+        tipo: tipoAtual,
+        modelo: document.getElementById("inp-modelo").value,
+        chassi: chassi,
+        drive: document.getElementById("inp-drive").value.trim(),
+        descricao: descricao,
+        cte: document.getElementById("chk-cte").checked,
+        nfe: document.getElementById("chk-nfe").checked,
+        anexos: [...anexosTemp],
+        okFunilaria: false,
+        okInfo: "",
+        osNumero: "",
+        valorOrcamento: 0,
+        statusPeca: "Não necessita peça",
+        statusRessarcimento: "Pendente envio",
+        protocolo: "",
+        status: "Aguardando GWM",
+        historico: []
+      };
+      registrarLog(novo, `Ocorrência registrada (${novo.modelo}) e e-mail aberto`);
+
+      registros.unshift(novo);
+      salvarTudo();
+      dispararEmail(novo, modo);
+
+      document.getElementById("inp-chassi").value = "";
+      document.getElementById("inp-descricao").value = "";
+      document.getElementById("inp-drive").value = "";
+      anexosTemp = [];
+      renderAnexosTemp();
+      updateLivePreview();
+      switchTab("planilha");
+    }
+
+    // DAR OK (CONFIRMAÇÃO FUNILARIA)
+    function darOKFunilaria(id) {
+      const item = registros.find(r => r.id === id);
+      if (!item) return;
+      const agora = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      item.okFunilaria = true;
+      item.okInfo = `${usuarioLogado.nome} em ${agora}`;
+      if (item.status === "Pendente Envio" || item.status === "Aguardando GWM") {
+        item.status = "Aprovado / Em Reparo";
+      }
+      registrarLog(item, "OK de recebimento confirmado pela Funilaria");
+      salvarTudo();
+      renderPlanilha();
+      renderDashboard();
+      if (modalRegistroId === id) abrirModalDossie(id);
+    }
+
+    // MODAL DOSSIÊ + FINANCEIRO + TERMO PDF
+    function abrirModalDossie(id) {
+      const r = registros.find(x => x.id === id);
+      if (!r) return;
+      modalRegistroId = id;
+
+      document.getElementById("mod-tipo").textContent = r.tipo;
+      document.getElementById("mod-titulo").textContent = `${r.modelo} — Chassi ${r.chassi}`;
+      document.getElementById("mod-subtitulo").textContent = `Recebimento: ${r.data ? r.data.split("-").reverse().join("/") : "-"} • Status: ${r.status}`;
+      document.getElementById("mod-descricao").textContent = r.descricao;
+
+      document.getElementById("fin-os").value = r.osNumero || "";
+      document.getElementById("fin-valor").value = r.valorOrcamento || "";
+      document.getElementById("fin-peca").value = r.statusPeca || "Não necessita peça";
+      document.getElementById("fin-ressarcimento").value = r.statusRessarcimento || "Pendente envio";
+
+      const okInfo = document.getElementById("mod-ok-info");
+      const btnOk = document.getElementById("mod-btn-ok");
+      if (r.okFunilaria) {
+        okInfo.innerHTML = `<span class="font-bold text-emerald-800">✅ OK Confirmado</span> por ${r.okInfo}`;
+        btnOk.textContent = "✅ Recebimento Confirmado";
+        btnOk.disabled = true;
+        btnOk.className = "bg-emerald-200 text-emerald-900 font-bold text-xs px-4 py-2.5 rounded-xl cursor-default";
+      } else {
+        okInfo.textContent = "Aguardando confirmação de recebimento pela Funilaria";
+        btnOk.textContent = "👍 Dar OK (Confirmar)";
+        btnOk.disabled = false;
+        btnOk.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition";
+      }
+
+      const anexos = r.anexos || [];
+      document.getElementById("mod-qtd-anexos").textContent = anexos.length;
+      const gal = document.getElementById("mod-galeria");
+      if (!anexos.length) {
+        gal.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Nenhuma foto ou PDF anexado neste veículo ainda.</div>`;
+      } else {
+        gal.innerHTML = anexos.map(a => `
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex flex-col">
+            ${a.tipo.startsWith("image/")
+              ? `<a href="${a.dataUrl}" target="_blank"><img src="${a.dataUrl}" class="w-full h-36 object-cover hover:opacity-90" /></a>`
+              : `<div class="h-36 flex flex-col items-center justify-center p-2 text-center"><span class="text-3xl">📄</span><span class="text-[11px] font-bold text-indigo-700 mt-1 break-all">${a.nome}</span></div>`}
+            <a href="${a.dataUrl}" download="${a.nome}" class="bg-white border-t border-slate-200 py-1.5 text-center text-[11px] font-bold text-cyan-700 hover:bg-cyan-50">⬇️ Baixar</a>
+          </div>
+        `).join("");
+      }
+
+      const hist = r.historico || ["Registro criado no sistema"];
+      document.getElementById("mod-historico").innerHTML = hist.map(h => `<div>• ${h}</div>`).join("");
+
+      document.getElementById("modal-dossie").classList.remove("hidden");
+    }
+
+    function salvarFinanceiroModal() {
+      const r = registros.find(x => x.id === modalRegistroId);
+      if (!r) return;
+      r.osNumero = document.getElementById("fin-os").value.trim();
+      r.valorOrcamento = parseFloat(document.getElementById("fin-valor").value) || 0;
+      r.statusPeca = document.getElementById("fin-peca").value;
+      r.statusRessarcimento = document.getElementById("fin-ressarcimento").value;
+      registrarLog(r, `Financeiro/Peças atualizado: OS "${r.osNumero || "-"}", R$ ${r.valorOrcamento.toFixed(2)}, ${r.statusPeca}, ${r.statusRessarcimento}`);
+      salvarTudo();
+      renderPlanilha();
+      renderDashboard();
+      abrirModalDossie(modalRegistroId);
+      alert("Dados de orçamento, peças e ressarcimento salvos!");
+    }
+
+    function imprimirTermoPDF() {
+      const r = registros.find(x => x.id === modalRegistroId);
+      if (!r) return;
+      const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
+      const imgs = (r.anexos || []).filter(a => a.tipo.startsWith("image/")).slice(0, 4);
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Termo de Ocorrência 0km — Dimas GWM (${r.chassi})</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #111; padding: 30px; max-width: 800px; margin: auto; }
+            .header { display: flex; justify-content: space-between; align-items: center; background: #0D1C26; color: #fff; padding: 16px 24px; border-radius: 10px; }
+            .title { font-size: 18px; font-weight: bold; margin: 20px 0 10px; border-bottom: 2px solid #0D1C26; padding-bottom: 6px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; }
+            td, th { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #f1f5f9; width: 28%; }
+            .photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+            .photos img { width: 100%; height: 190px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 6px; }
+            .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 55px; font-size: 12px; text-align: center; }
+            .line { border-top: 1px solid #333; padding-top: 6px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div><strong>DIMAS 50 ANOS</strong> &nbsp;|&nbsp; <strong>GWM</strong> Hello, tomorrow.</div>
+            <div style="font-size:12px;">Termo de Vistoria 0km</div>
+          </div>
+          <div class="title">1. Dados do Veículo e Ocorrência</div>
+          <table>
+            <tr><th>Concessionária</th><td>Dimas GWM</td><th>Data Recebimento</th><td>${dataBR}</td></tr>
+            <tr><th>Modelo / Versão</th><td>${r.modelo}</td><th>Chassi (VIN)</th><td><strong>${r.chassi}</strong></td></tr>
+            <tr><th>Tipo Ocorrência</th><td>${r.tipo}</td><th>Protocolo GWM</th><td>${r.protocolo || "Pendente"}</td></tr>
+            <tr><th>Nº OS Funilaria</th><td>${r.osNumero || "-"}</td><th>Orçamento</th><td>R$ ${(r.valorOrcamento || 0).toFixed(2)}</td></tr>
+            <tr><th>Status Peças</th><td>${r.statusPeca || "-"}</td><th>Ressarcimento</th><td>${r.statusRessarcimento || "-"}</td></tr>
+            <tr><th>Descrição</th><td colspan="3">${r.descricao}</td></tr>
+            <tr><th>Confirmação Funilaria</th><td colspan="3">${r.okFunilaria ? "✅ Recebido e Confirmado por " + r.okInfo : "Aguardando confirmação"}</td></tr>
+          </table>
+          ${imgs.length ? `<div class="title">2. Evidências Fotográficas</div><div class="photos">${imgs.map(i => `<img src="${i.dataUrl}" />`).join("")}</div>` : ""}
+          <div class="signs">
+            <div class="line">Responsável Logística / Pátio<br/>Dimas GWM</div>
+            <div class="line">Analista de Funilaria / Motorista Carreta<br/>Conferência e Recebimento</div>
+          </div>
+          <script>window.onload = () => window.print();<\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    }
+
+    function confirmarOKModal() {
+      if (modalRegistroId) darOKFunilaria(modalRegistroId);
+    }
+
+    function avisarWhatsAppModal() {
+      const r = registros.find(x => x.id === modalRegistroId);
+      if (r) avisarWhatsApp(r);
+    }
+
+    async function anexarNoModal(event) {
+      const r = registros.find(x => x.id === modalRegistroId);
+      if (!r) return;
+      if (!r.anexos) r.anexos = [];
+      const files = Array.from(event.target.files);
+      for (const f of files) {
+        const item = await lerArquivoComprimido(f);
+        r.anexos.push(item);
+      }
+      registrarLog(r, `${files.length} arquivo(s) adicionado(s) ao dossiê`);
+      salvarTudo();
+      abrirModalDossie(modalRegistroId);
+      renderPlanilha();
+    }
+
+    function fecharModalDossie() {
+      document.getElementById("modal-dossie").classList.add("hidden");
+      modalRegistroId = null;
+    }
+
+    // LOTE COM SELETOR DE MODELO
+    async function processarPastaLote(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      const grupos = {};
+      files.forEach(f => {
+        const parts = f.webkitRelativePath.split("/");
+        const folderName = parts.length > 2 ? parts[parts.length - 2] : parts[0];
+        if (!grupos[folderName]) grupos[folderName] = [];
+        grupos[folderName].push(f);
+      });
+
+      loteTemp = [];
+      let idx = 0;
+      for (const [pasta, fileList] of Object.entries(grupos)) {
+        const arqs = fileList.map(f => f.name.toLowerCase());
+        const textoCompleto = pasta + " " + arqs.join(" ");
+        const dateMatch = pasta.match(/\d{4}-\d{2}-\d{2}/);
+        const chassiMatch = pasta.match(/[A-Z0-9]{6,17}/gi);
+        const lastToken = chassiMatch ? chassiMatch[chassiMatch.length - 1].toUpperCase() : "000000";
+        const isFaltante = /falt|manual|tapete|carregador|chave/i.test(textoCompleto);
+
+        const modeloDetectado = detectarModeloPorTexto(textoCompleto);
+        const partesPasta = pasta.split("_");
+        const descExtraida = partesPasta.length > 3 ? partesPasta.slice(3).join(" ") : "Verificar avaria conforme fotos da pasta";
+
+        const anexosPasta = [];
+        for (const f of fileList.slice(0, 10)) {
+          if (f.type.startsWith("image/") || f.name.toLowerCase().endsWith(".pdf")) {
+            anexosPasta.push(await lerArquivoComprimido(f));
+          }
+        }
+
+        loteTemp.push({
+          tempId: idx++,
+          pasta,
+          data: dateMatch ? dateMatch[0] : new Date().toISOString().split("T")[0],
+          tipo: isFaltante ? "Item Faltante" : "Avaria",
+          modelo: modeloDetectado,
+          chassi: lastToken,
+          descricao: descExtraida,
+          cte: arqs.some(a => a.includes("cte") || a.includes("ct-e") || a.endsWith(".pdf")),
+          nfe: arqs.some(a => a.includes("nfe") || a.includes("nf-e") || a.includes("nota")),
+          anexos: anexosPasta,
+          qtdArquivos: fileList.length
+        });
+      }
+
+      document.getElementById("lote-resultados").classList.remove("hidden");
+      document.getElementById("lote-count").textContent = loteTemp.length;
+      document.getElementById("lote-cards").innerHTML = loteTemp.map((item, i) => `
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-slate-700 truncate">📁 ${item.pasta}</span>
+            <span class="text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-full font-semibold">${item.qtdArquivos} arq.</span>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-cyan-800 mb-1">Modelo do Veículo GWM:</label>
+            <select onchange="loteTemp[${i}].modelo=this.value" class="w-full rounded-lg border-2 border-cyan-400 px-2.5 py-1.5 text-xs bg-white font-bold text-slate-900">
+              ${MODELOS_GWM.map(m => `<option value="${m}" ${item.modelo === m ? "selected" : ""}>${m}</option>`).join("")}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <select onchange="loteTemp[${i}].tipo=this.value" class="rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white font-semibold">
+              <option value="Avaria" ${item.tipo === "Avaria" ? "selected" : ""}>🛠️ Avaria</option>
+              <option value="Item Faltante" ${item.tipo === "Item Faltante" ? "selected" : ""}>📦 Item Faltante</option>
+            </select>
+            <input type="text" value="${item.chassi}" onchange="loteTemp[${i}].chassi=this.value.toUpperCase()" class="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-mono uppercase" placeholder="Chassi" />
+          </div>
+          <input type="text" value="${item.descricao}" onchange="loteTemp[${i}].descricao=this.value" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="Descrição da avaria" />
+        </div>
+      `).join("");
+    }
+
+    function salvarLoteNaPlanilha() {
+      loteTemp.forEach((item, idx) => {
+        const reg = {
+          id: Date.now() + idx,
+          data: item.data,
+          tipo: item.tipo,
+          modelo: item.modelo,
+          chassi: item.chassi,
+          drive: "",
+          descricao: item.descricao,
+          cte: item.cte,
+          nfe: item.nfe,
+          anexos: item.anexos || [],
+          okFunilaria: false,
+          okInfo: "",
+          osNumero: "",
+          valorOrcamento: 0,
+          statusPeca: "Não necessita peça",
+          statusRessarcimento: "Pendente envio",
+          protocolo: "",
+          status: "Pendente Envio",
+          historico: []
+        };
+        registrarLog(reg, `Importado em lote da pasta "${item.pasta}"`);
+        registros.unshift(reg);
+      });
+      salvarTudo();
+      document.getElementById("lote-resultados").classList.add("hidden");
+      loteTemp = [];
+      switchTab("planilha");
+    }
+
+    // PLANILHA
+    function renderPlanilha() {
+      const busca = document.getElementById("filtro-busca").value.toLowerCase();
+      const tipoFiltro = document.getElementById("filtro-tipo").value;
+
+      const filtrados = registros.filter(r => {
+        const matchTexto = r.chassi.toLowerCase().includes(busca) || r.modelo.toLowerCase().includes(busca) || r.descricao.toLowerCase().includes(busca);
+        const matchTipo = tipoFiltro === "Todos" || r.tipo === tipoFiltro;
+        return matchTexto && matchTipo;
+      });
+
+      const tbody = document.getElementById("tabela-corpo");
+      if (!filtrados.length) {
+        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">Nenhum registro encontrado.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(r => {
+        const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
+        const badgeSla = getBadgeSLA(r.data, r.status);
+        const badgeTipo = r.tipo === "Avaria"
+          ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Avaria</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Faltante</span>`;
+
+        const qtdAnexos = (r.anexos || []).length;
+        const valBadge = r.valorOrcamento > 0 ? `<div class="text-[10px] font-bold text-indigo-700 mt-0.5">R$ ${Number(r.valorOrcamento).toFixed(2)}</div>` : "";
+        const okCol = r.okFunilaria
+          ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold" title="${r.okInfo}">✅ OK Confirmado</span>`
+          : `<button onclick="darOKFunilaria(${r.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm transition">👍 Dar OK</button>`;
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 whitespace-nowrap">
+              <div class="font-medium">${dataBR}</div>
+              ${badgeSla}
+            </td>
+            <td class="p-3 whitespace-nowrap">${badgeTipo}</td>
+            <td class="p-3 whitespace-nowrap">
+              <select onchange="atualizarCampo(${r.id}, 'modelo', this.value)" class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-bold text-slate-800 bg-white">
+                ${MODELOS_GWM.map(m => `<option value="${m}" ${r.modelo === m ? "selected" : ""}>${m}</option>`).join("")}
+              </select>
+            </td>
+            <td class="p-3 whitespace-nowrap font-mono font-bold text-cyan-700">${r.chassi.slice(-6)}</td>
+            <td class="p-3 max-w-xs truncate" title="${r.descricao}">${r.descricao}</td>
+            <td class="p-3 whitespace-nowrap">
+              <button onclick="abrirModalDossie(${r.id})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                📷 Dossiê (${qtdAnexos})
+              </button>
+              ${valBadge}
+            </td>
+            <td class="p-3 whitespace-nowrap">${okCol}</td>
+            <td class="p-3 whitespace-nowrap">
+              <input type="text" value="${r.protocolo || ""}" placeholder="#Protocolo" onchange="atualizarCampo(${r.id}, 'protocolo', this.value)" class="w-24 rounded-lg border border-slate-300 px-2 py-1 text-xs font-mono" />
+            </td>
+            <td class="p-3 whitespace-nowrap">
+              <select onchange="atualizarCampo(${r.id}, 'status', this.value)" class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold bg-white">
+                <option value="Pendente Envio" ${r.status === "Pendente Envio" ? "selected" : ""}>Pendente Envio</option>
+                <option value="Aguardando GWM" ${r.status === "Aguardando GWM" ? "selected" : ""}>Aguardando GWM</option>
+                <option value="Aprovado / Em Reparo" ${r.status === "Aprovado / Em Reparo" ? "selected" : ""}>Aprovado / Em Reparo</option>
+                <option value="Concluído" ${r.status === "Concluído" ? "selected" : ""}>Concluído</option>
+              </select>
+            </td>
+            <td class="p-3 whitespace-nowrap text-center space-x-1">
+              <button onclick="avisarWhatsAppLinha(${r.id})" title="Avisar Funilaria no WhatsApp" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-bold">💬</button>
+              <button onclick="reenviarEmail(${r.id}, 'app')" title="Outlook App" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-1 rounded-lg font-bold">✉️</button>
+              <button onclick="reenviarEmail(${r.id}, 'web')" title="Outlook Web (Nova Aba)" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-700 px-2 py-1 rounded-lg font-bold">🌐</button>
+              <button onclick="excluirRegistro(${r.id})" title="Excluir" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-lg font-bold">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function atualizarCampo(id, campo, valor) {
+      const item = registros.find(r => r.id === id);
+      if (item) {
+        item[campo] = valor;
+        registrarLog(item, `Campo "${campo}" alterado para "${valor}"`);
+        salvarTudo();
+      }
+    }
+
+    function avisarWhatsAppLinha(id) {
+      const item = registros.find(r => r.id === id);
+      if (item) avisarWhatsApp(item);
+    }
+
+    function reenviarEmail(id, modo) {
+      const item = registros.find(r => r.id === id);
+      if (item) {
+        registrarLog(item, `E-mail Outlook (${modo === "web" ? "Web" : "App"}) aberto`);
+        salvarTudo();
+        dispararEmail(item, modo);
+      }
+    }
+
+    function excluirRegistro(id) {
+      if (!confirm("Remover este registro?")) return;
+      registros = registros.filter(r => r.id !== id);
+      salvarTudo();
+      renderPlanilha();
+    }
+
+    function exportarCSV() {
+      if (!registros.length) return alert("Sem registros para exportar.");
+      const headers = ["Data", "Tipo", "Modelo", "Chassi", "Descricao", "OS Funilaria", "Valor Orcamento", "Status Pecas", "Ressarcimento GWM", "OK Funilaria", "Confirmado Por", "Protocolo GWM", "Status"];
+      const rows = registros.map(r => [
+        r.data, r.tipo, r.modelo, r.chassi,
+        `"${(r.descricao || "").replace(/"/g, '""')}"`,
+        r.osNumero || "",
+        (r.valorOrcamento || 0).toFixed(2).replace(".", ","),
+        r.statusPeca || "",
+        r.statusRessarcimento || "",
+        r.okFunilaria ? "Sim" : "Pendente",
+        `"${r.okInfo || ""}"`,
+        r.protocolo || "", r.status
+      ]);
+      const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([csvContent], { type: "text/csv;charset=utf-8;" }));
+      link.download = `Dimas_GWM_Planilha_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+    }
+
+    // BACKUP DRIVE (.JSON)
+    function fazerBackupJSON() {
+      const payload = { dataBackup: new Date().toISOString(), usuarios, registros };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `BACKUP_DIMAS_GWM_${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+    }
+
+    function restaurarBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data.registros)) {
+            registros = data.registros;
+            if (Array.isArray(data.usuarios)) usuarios = data.usuarios;
+            salvarTudo();
+            renderDashboard();
+            renderPlanilha();
+            alert(`Backup restaurado com sucesso! (${registros.length} veículos carregados)`);
+          }
+        } catch (err) {
+          alert("Arquivo de backup inválido.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // USUÁRIOS
+    function renderUsuarios() {
+      const box = document.getElementById("lista-usuarios");
+      box.innerHTML = usuarios.map((u, i) => `
+        <div class="py-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="font-bold text-sm text-slate-900">${u.nome}</div>
+            <div class="text-[11px] text-slate-500">${u.role === "admin" ? "Controle Geral" : "Analista de Funilaria"}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" value="${u.login}" onchange="usuarios[${i}].login=this.value.trim(); salvarTudo()" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Login" />
+            <input type="text" value="${u.senha}" onchange="usuarios[${i}].senha=this.value.trim(); salvarTudo()" class="w-28 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono" title="Senha" />
+            ${usuarios.length > 1 ? `<button onclick="usuarios.splice(${i},1); salvarTudo(); renderUsuarios()" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg text-xs font-bold">🗑️</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function adicionarUsuario(e) {
+      e.preventDefault();
+      usuarios.push({
+        id: Date.now(),
+        nome: document.getElementById("new-u-nome").value.trim(),
+        role: document.getElementById("new-u-role").value,
+        login: document.getElementById("new-u-login").value.trim(),
+        senha: document.getElementById("new-u-senha").value.trim()
+      });
+      salvarTudo();
+      e.target.reset();
+      renderUsuarios();
+    }
+
+    // DASHBOARD
+    function setPeriod(p) {
+      periodoAtual = p;
+      ["all", "month", "7days"].forEach(k => {
+        const btn = document.getElementById("period-" + k);
+        btn.className = k === p
+          ? "period-btn bg-dimas-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold"
+          : "period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold";
+      });
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const agora = new Date();
+      const dados = registros.filter(r => {
+        if (periodoAtual === "all" || !r.data) return true;
+        const d = new Date(r.data + "T00:00:00");
+        if (periodoAtual === "month") return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+        if (periodoAtual === "7days") return (agora - d) / (1000 * 60 * 60 * 24) <= 7;
+        return true;
+      });
+
+      const total = dados.length;
+      const avarias = dados.filter(d => d.tipo === "Avaria").length;
+      const faltantes = dados.filter(d => d.tipo === "Item Faltante").length;
+      const semOk = dados.filter(d => !d.okFunilaria).length;
+      const comOk = dados.filter(d => d.okFunilaria).length;
+      const aguardando = dados.filter(d => d.status === "Aguardando GWM").length;
+      const concluidos = dados.filter(d => d.status === "Concluído").length;
+      const valorTotal = dados.reduce((acc, cur) => acc + (Number(cur.valorOrcamento) || 0), 0);
+
+      document.getElementById("kpi-total").textContent = total;
+      document.getElementById("kpi-split").textContent = `${avarias} avarias • ${faltantes} faltantes`;
+      document.getElementById("kpi-sem-ok").textContent = semOk;
+      document.getElementById("kpi-com-ok").textContent = `${comOk} confirmados`;
+      document.getElementById("kpi-valor-total").textContent = `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+      document.getElementById("kpi-aguardando").textContent = `${aguardando} aguardando GWM`;
+      document.getElementById("kpi-concluidos").textContent = concluidos;
+
+      const listaEl = document.getElementById("lista-pendencias");
+      const ativos = dados.filter(d => d.status !== "Concluído").slice(0, 8);
+      if (!ativos.length) {
+        listaEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">Nenhuma pendência ativa no momento.</div>`;
+      } else {
+        listaEl.innerHTML = ativos.map(a => `
+          <div class="py-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-slate-900">${a.modelo}</span>
+              <span class="text-xs font-mono text-cyan-700 font-bold ml-1.5">#${a.chassi.slice(-6)}</span>
+              <span class="text-[11px] ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${a.tipo}</span>
+              ${a.okFunilaria ? `<span class="text-[11px] ml-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">✅ OK Funilaria</span>` : ""}
+              <p class="text-xs text-slate-500 mt-0.5">${a.descricao}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button onclick="abrirModalDossie(${a.id})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">📷 Dossiê (${(a.anexos||[]).length})</button>
+              <button onclick="avisarWhatsAppLinha(${a.id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">💬 WhatsApp</button>
+              ${!a.okFunilaria ? `<button onclick="darOKFunilaria(${a.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">👍 Dar OK</button>` : ""}
+              <button onclick="reenviarEmail(${a.id}, 'web')" class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">🌐 Outlook Web</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      if (charts.tipo) charts.tipo.destroy();
+      charts.tipo = new Chart(document.getElementById("chartTipo"), {
+        type: "doughnut",
+        data: { labels: ["Avaria", "Item Faltante"], datasets: [{ data: [avarias, faltantes], backgroundColor: ["#F43F5E", "#F59E0B"], borderWidth: 0 }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+      });
+
+      const modelosMap = {};
+      dados.forEach(d => { modelosMap[d.modelo] = (modelosMap[d.modelo] || 0) + 1; });
+      if (charts.modelo) charts.modelo.destroy();
+      charts.modelo = new Chart(document.getElementById("chartModelo"), {
+        type: "bar",
+        data: { labels: Object.keys(modelosMap), datasets: [{ label: "Ocorrências", data: Object.values(modelosMap), backgroundColor: "#00B4D8", borderRadius: 6 }] },
+        options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      const statusLabels = ["Pendente Envio", "Aguardando GWM", "Aprovado / Em Reparo", "Concluído"];
+      const statusCounts = statusLabels.map(s => dados.filter(d => d.status === s).length);
+      if (charts.status) charts.status.destroy();
+      charts.status = new Chart(document.getElementById("chartStatus"), {
+        type: "bar",
+        data: { labels: ["Pendente", "Aguardando", "Em Reparo", "Concluído"], datasets: [{ label: "Processos", data: statusCounts, backgroundColor: ["#F43F5E", "#F59E0B", "#6366F1", "#10B981"], borderRadius: 6 }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
+
+    // BOOT
+    document.getElementById("badge-total").textContent = registros.length;
+    updateLivePreview();
+    aplicarSessao();
+  </script>
+</body>
+</html>
