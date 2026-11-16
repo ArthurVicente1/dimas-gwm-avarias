@@ -1840,6 +1840,31 @@ Dimas GWM`;
       return bytes;
     }
 
+    async function imagemDataUrlParaJpegBytes(dataUrl) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxDim = 1400;
+          const scale = Math.max(img.width, img.height) > maxDim ? maxDim / Math.max(img.width, img.height) : 1;
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const jpegUrl = canvas.toDataURL("image/jpeg", 0.88);
+          resolve({
+            bytes: base64DataUrlToUint8Array(jpegUrl),
+            width: canvas.width,
+            height: canvas.height
+          });
+        };
+        img.onerror = () => resolve(null);
+        img.src = dataUrl;
+      });
+    }
+
     window.baixarTermoPDF = async function(idParam = null) {
       const targetId = idParam || modalRegistroId;
       const r = registros.find(x => x.id === targetId);
@@ -1848,7 +1873,7 @@ Dimas GWM`;
       const btnModal = document.getElementById("mod-btn-pdf");
       if (btnModal && !idParam) {
         btnModal.disabled = true;
-        btnModal.textContent = "⏳ Montando PDF Completo...";
+        btnModal.textContent = "⏳ Gerando PDF...";
       }
 
       try {
@@ -1862,107 +1887,146 @@ Dimas GWM`;
           (a.tipo || "") === "application/pdf" || (a.nome || "").toLowerCase().endsWith(".pdf")
         );
 
-        const container = document.createElement("div");
-        container.style.width = "760px";
-        container.style.padding = "24px";
-        container.style.fontFamily = "Arial, sans-serif";
-        container.style.color = "#0f172a";
-        container.style.background = "#ffffff";
+        // 1. Renderizar APENAS a Página 1 (Capa / Ficha Técnica) via html2pdf
+        const capaDiv = document.createElement("div");
+        capaDiv.style.width = "750px";
+        capaDiv.style.padding = "24px";
+        capaDiv.style.fontFamily = "Arial, sans-serif";
+        capaDiv.style.color = "#0f172a";
+        capaDiv.style.background = "#ffffff";
 
-        container.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#0D1C26; color:#ffffff; padding:14px 20px; border-radius:8px;">
+        capaDiv.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#0D1C26; color:#ffffff; padding:16px 22px; border-radius:8px;">
             <div style="font-size:15px;"><strong>DIMAS 50 ANOS</strong> &nbsp;|&nbsp; <strong>GWM</strong> Hello, tomorrow.</div>
             <div style="font-size:12px;">Dossiê de Ocorrência 0km</div>
           </div>
 
-          <div style="font-size:15px; font-weight:bold; margin:18px 0 8px; border-bottom:2px solid #0D1C26; padding-bottom:4px;">1. Dados do Veículo</div>
-          <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px;">
+          <div style="font-size:15px; font-weight:bold; margin:20px 0 10px; border-bottom:2px solid #0D1C26; padding-bottom:5px;">1. Dados do Veículo e Ocorrência</div>
+          <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left; width:22%;">Concessionária</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px; width:28%;">Dimas GWM</td>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left; width:22%;">Data Recebimento</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px; width:28%;">${dataBR}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left; width:22%;">Concessionária</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px; width:28%;">Dimas GWM</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left; width:22%;">Data Recebimento</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px; width:28%;">${dataBR}</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Modelo / Cor</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.modelo} (${r.cor || "-"})</td>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Chassi (VIN)</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;"><strong>${r.chassi}</strong></td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Modelo / Cor</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.modelo} (${r.cor || "-"})</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Chassi (VIN)</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;"><strong>${r.chassi}</strong></td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Transportadora</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.transportadora || "-"}</td>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Tapete</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.tapete || "Sim"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Transportadora</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.transportadora || "-"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Tapete</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.tapete || "Sim"}</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Tipo</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.tipo}</td>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Protocolo GWM</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.protocolo || "Pendente"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Tipo</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.tipo}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Protocolo GWM</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.protocolo || "Pendente"}</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Nº OS</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">${r.osNumero || "-"}</td>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Orçamento</th>
-              <td style="border:1px solid #cbd5e1; padding:7px 9px;">R$ ${(r.valorOrcamento || 0).toFixed(2)}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Nº OS</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.osNumero || "-"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Orçamento</th>
+              <td style="border:1px solid #cbd5e1; padding:8px 10px;">R$ ${(r.valorOrcamento || 0).toFixed(2)}</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Descrição</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:7px 9px;">${r.descricao}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Descrição</th>
+              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${r.descricao}</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Google Drive</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:7px 9px; word-break:break-all;">${r.drive || "-"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Anexos no Dossiê</th>
+              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${fotos.length} foto(s)/digitalização(ões) + ${pdfsAnexos.length} documento(s) PDF</td>
             </tr>
             <tr>
-              <th style="border:1px solid #cbd5e1; padding:7px 9px; background:#f1f5f9; text-align:left;">Funilaria</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:7px 9px;">${r.okFunilaria ? "Confirmado por " + r.okInfo : "Pendente"}</td>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Google Drive</th>
+              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px; word-break:break-all;">${r.drive || "-"}</td>
+            </tr>
+            <tr>
+              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Funilaria</th>
+              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${r.okFunilaria ? "Confirmado por " + r.okInfo : "Pendente"}</td>
             </tr>
           </table>
 
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:26px; margin-bottom:20px; font-size:11px; text-align:center;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:44px; font-size:11px; text-align:center;">
             <div style="border-top:1px solid #333; padding-top:6px;">Logística / Pátio<br/>Dimas GWM</div>
             <div style="border-top:1px solid #333; padding-top:6px;">Funilaria / Transportadora<br/>Conferência</div>
           </div>
-
-          ${fotos.length ? `
-            <div style="font-size:15px; font-weight:bold; margin:16px 0 10px; border-bottom:2px solid #0D1C26; padding-bottom:4px;">2. Evidências Fotográficas & Digitalizações (${fotos.length})</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              ${fotos.map(f => `
-                <div style="border:1px solid #cbd5e1; border-radius:6px; padding:6px; background:#f8fafc; page-break-inside:avoid;">
-                  <img src="${f.dataUrl}" style="width:100%; height:220px; object-fit:contain; background:#ffffff; border-radius:4px;" />
-                  <div style="font-size:10px; color:#475569; margin-top:4px; text-align:center; word-break:break-all;">${f.nome || ""}</div>
-                </div>
-              `).join("")}
-            </div>
-          ` : ""}
         `;
 
-        const opt = {
+        const optCapa = {
           margin: 8,
-          image: { type: "jpeg", quality: 0.90 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+          image: { type: "jpeg", quality: 0.92 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
-        // Gera o PDF base (Capa + Todas as Fotos) em ArrayBuffer
-        const basePdfBuffer = await html2pdf().set(opt).from(container).outputPdf("arraybuffer");
+        const capaBuffer = await html2pdf().set(optCapa).from(capaDiv).outputPdf("arraybuffer");
 
-        // Mescla com pdf-lib os PDFs originais de CT-e e NF-e anexados
-        const { PDFDocument } = PDFLib;
-        const mergedPdf = await PDFDocument.load(basePdfBuffer);
+        // 2. Montar PDF final direto com pdf-lib: Capa + Todas as Fotos (2 por página A4) + Todos os PDFs (CT-e / NF-e)
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const mergedPdf = await PDFDocument.load(capaBuffer);
+        const fontBold = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
+        const fontReg = await mergedPdf.embedFont(StandardFonts.Helvetica);
 
+        // Desenha 2 fotos por página A4 (595.28 x 841.89 pt) para nenhuma imagem ser cortada
+        const pageW = 595.28;
+        const pageH = 841.89;
+        const margin = 36;
+        const slotW = pageW - margin * 2;
+        const slotH = 335;
+
+        for (let i = 0; i < fotos.length; i += 2) {
+          const page = mergedPdf.addPage([pageW, pageH]);
+          page.drawText(`DIMAS GWM — EVIDÊNCIAS (${r.modelo} | Chassi: ${r.chassi})`, {
+            x: margin,
+            y: pageH - 32,
+            size: 10,
+            font: fontBold,
+            color: rgb(0.05, 0.11, 0.15)
+          });
+
+          const par = [fotos[i], fotos[i + 1]].filter(Boolean);
+          for (let slotIdx = 0; slotIdx < par.length; slotIdx++) {
+            const fotoObj = par[slotIdx];
+            if (!fotoObj.dataUrl) continue;
+            const conv = await imagemDataUrlParaJpegBytes(fotoObj.dataUrl);
+            if (!conv) continue;
+
+            const embeddedImg = await mergedPdf.embedJpg(conv.bytes);
+            const ratio = Math.min(slotW / conv.width, (slotH - 22) / conv.height);
+            const drawW = conv.width * ratio;
+            const drawH = conv.height * ratio;
+
+            const topY = pageH - 52 - slotIdx * (slotH + 20);
+            const imgX = margin + (slotW - drawW) / 2;
+            const imgY = topY - drawH;
+
+            page.drawImage(embeddedImg, { x: imgX, y: imgY, width: drawW, height: drawH });
+            const legenda = `${i + slotIdx + 1}/${fotos.length} — ${(fotoObj.nome || "").slice(0, 65)}`;
+            page.drawText(legenda, {
+              x: margin,
+              y: imgY - 14,
+              size: 8.5,
+              font: fontReg,
+              color: rgb(0.3, 0.35, 0.42)
+            });
+          }
+        }
+
+        // Mescla todas as páginas originais dos PDFs (CT-e e NF-e)
         for (const pdfAnexo of pdfsAnexos) {
           if (!pdfAnexo.dataUrl || !pdfAnexo.dataUrl.includes(",")) continue;
           try {
             const anexoBytes = base64DataUrlToUint8Array(pdfAnexo.dataUrl);
             const anexoDoc = await PDFDocument.load(anexoBytes);
             const copiedPages = await mergedPdf.copyPages(anexoDoc, anexoDoc.getPageIndices());
-            copiedPages.forEach(page => mergedPdf.addPage(page));
+            copiedPages.forEach(p => mergedPdf.addPage(p));
           } catch (errPdf) {
-            console.warn("Não foi possível mesclar PDF anexo:", pdfAnexo.nome, errPdf);
+            console.warn("Erro ao mesclar PDF:", pdfAnexo.nome, errPdf);
           }
         }
 
