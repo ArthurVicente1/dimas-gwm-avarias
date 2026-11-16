@@ -164,6 +164,17 @@
     </div>
   </header>
 
+  <!-- BANNER DE ALERTA CRÍTICO DE SLA 72H (FUNCIONALIDADE 3) -->
+  <div id="sla-critical-banner" class="hidden bg-gradient-to-r from-rose-700 to-red-600 text-white px-6 py-2.5 text-xs font-semibold flex flex-wrap items-center justify-between gap-2 shadow">
+    <div class="flex items-center gap-2">
+      <span class="text-base">🚨</span>
+      <span id="sla-critical-text">Atenção: Existem veículos próximos ou acima do prazo SLA de 72h sem protocolo GWM!</span>
+    </div>
+    <button onclick="switchTab('planilha')" class="bg-white text-rose-700 font-extrabold px-3 py-1 rounded-lg text-[11px] hover:bg-rose-50 transition">
+      Ver na Planilha →
+    </button>
+  </div>
+
   <!-- ALERTA DE REGRAS FIREBASE -->
   <div id="firebase-error-banner" class="hidden bg-rose-600 text-white px-6 py-3 text-xs font-semibold flex items-center justify-between">
     <span id="firebase-error-text">Atenção: Verifique se o Firestore Database está ativado em modo de teste no console do Firebase.</span>
@@ -178,12 +189,17 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="text-xl font-bold text-slate-900">Painel Executivo — Dimas GWM (Tempo Real)</h2>
-          <p class="text-sm text-slate-500">Fotos armazenadas no Google Drive 5TB • Sincronização instantânea entre Logística e Funilaria</p>
+          <p class="text-sm text-slate-500">Fotos no Google Drive 5TB • Leitura Fiscal CT-e/NF-e com IA • Controle de SLA & Ressarcimento</p>
         </div>
-        <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 card-shadow">
-          <button onclick="setPeriod('all')" id="period-all" class="period-btn bg-dimas-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Todos</button>
-          <button onclick="setPeriod('month')" id="period-month" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Este Mês</button>
-          <button onclick="setPeriod('7days')" id="period-7days" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Últimos 7 dias</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="gerarBoletimExecutivo()" class="bg-dimas-navy hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition">
+            <span>📊</span> Gerar Relatório Gerencial (PDF)
+          </button>
+          <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 card-shadow">
+            <button onclick="setPeriod('all')" id="period-all" class="period-btn bg-dimas-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Todos</button>
+            <button onclick="setPeriod('month')" id="period-month" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Este Mês</button>
+            <button onclick="setPeriod('7days')" id="period-7days" class="period-btn text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Últimos 7 dias</button>
+          </div>
         </div>
       </div>
 
@@ -213,7 +229,7 @@
 
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Orçamentos em Aberto</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Orçamentos / Ressarcimento</span>
             <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">💰</span>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
@@ -224,12 +240,12 @@
 
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Concluídos</span>
-            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">✅</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Lead Time Médio / Concluídos</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">⏱️</span>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
             <span id="kpi-concluidos" class="text-3xl font-extrabold text-emerald-600">0</span>
-            <span class="text-xs text-slate-500">processos finalizados</span>
+            <span id="kpi-leadtime" class="text-xs font-semibold text-slate-500">média 0d p/ liberar</span>
           </div>
         </div>
       </div>
@@ -254,8 +270,8 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900">Fila Operacional & Confirmação Funilaria</h3>
-            <p class="text-xs text-slate-500">Acesse a pasta no Drive 5TB, dê o "OK" de recebimento ou dispare o e-mail no Outlook</p>
+            <h3 class="text-base font-bold text-slate-900">Fila Operacional, SLA 72h & Cobrança GWM</h3>
+            <p class="text-xs text-slate-500">Acesse o Drive 5TB, dê o "OK" na funilaria ou dispare follow-up automático de cobrança no Outlook</p>
           </div>
           <button onclick="switchTab('novo')" id="btn-dash-novo" class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">
             + Registrar Novo
@@ -265,19 +281,22 @@
       </div>
     </section>
 
-    <!-- ABA 2: NOVO REGISTRO & ARMAZÉM DRIVE + IA -->
+    <!-- ABA 2: NOVO REGISTRO & ARMAZÉM DRIVE + IA (FOTOS + PDF CT-e/NF-e) -->
     <section id="tab-novo" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
           <div class="border-b border-slate-100 pb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 class="text-lg font-bold text-slate-900">Novo Registro de Ocorrência 0km</h2>
-              <p class="text-xs text-slate-500">Envia fotos para o Google Drive 5TB e gera o e-mail do Outlook</p>
+              <p class="text-xs text-slate-500">Envia fotos/PDFs para o Drive 5TB e extrai dados fiscais com IA</p>
             </div>
-            <button type="button" id="btn-ai-analyze" onclick="analisarFotosComIA()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5">
-              <span>✨</span> Preencher com IA (Fotos/Docs)
+            <button type="button" id="btn-ai-analyze" onclick="analisarArquivosComIA()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+              <span>✨</span> Ler Fotos & PDFs (CT-e/NF-e) com IA
             </button>
           </div>
+
+          <!-- ALERTA AUDITORIA RESSALVA CT-e -->
+          <div id="ai-cte-alert" class="hidden rounded-xl p-3 text-xs font-semibold border"></div>
 
           <div>
             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">1. Tipo de Ocorrência</label>
@@ -305,12 +324,12 @@
             </div>
           </div>
 
-          <!-- COFRE DE FOTOS E DOCUMENTOS (DRIVE 5TB) -->
+          <!-- COFRE DE FOTOS E PDFs (DRIVE 5TB) -->
           <div class="bg-cyan-50/50 rounded-xl p-4 border border-cyan-200 space-y-3">
             <div class="flex items-center justify-between">
               <div>
-                <span class="text-xs font-bold uppercase text-cyan-950">2. Fotos & Docs (CT-e / NF-e) → Google Drive 5TB</span>
-                <p class="text-[11px] text-cyan-800">Anexe as fotos primeiro para a IA ler o chassi, modelo e avaria automaticamente</p>
+                <span class="text-xs font-bold uppercase text-cyan-950">2. Fotos & PDFs (CT-e / NF-e) → Google Drive 5TB</span>
+                <p class="text-[11px] text-cyan-800">Anexe fotos do carro e o PDF do CT-e/NF-e para a IA extrair Chassi, Transportadora e Ressalva</p>
               </div>
               <label class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3 py-2 rounded-lg cursor-pointer transition shadow-sm">
                 + Selecionar Arquivos
@@ -331,17 +350,26 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">
-                Chassi Completo (VIN) * <span id="chassi-badge" class="ml-1 text-[11px] font-bold text-cyan-600"></span>
+                Chassi (VIN) * <span id="chassi-badge" class="ml-1 text-[11px] font-bold text-cyan-600"></span>
               </label>
-              <input type="text" id="inp-chassi" maxlength="17" placeholder="Ex: 9BWH6123456789012" oninput="this.value=this.value.toUpperCase(); updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-mono uppercase focus:border-[#00B4D8] focus:outline-none" />
+              <input type="text" id="inp-chassi" maxlength="17" placeholder="9BWH6123456789012" oninput="this.value=this.value.toUpperCase(); updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-mono uppercase focus:border-[#00B4D8] focus:outline-none" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Link Manual do Drive (Auto-gerado ao enviar)</label>
-              <input type="url" id="inp-drive" placeholder="Gerado automaticamente no Drive 5TB..." oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
+              <label class="block text-xs font-bold text-slate-700 mb-1">Transportadora / Cegonha</label>
+              <input type="text" id="inp-transportadora" placeholder="Ex: Tegma / Gabardo" oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
             </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nº NF-e / CT-e</label>
+              <input type="text" id="inp-docfiscal" placeholder="Ex: NF 45120 / CT-e 889" oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-mono focus:border-[#00B4D8] focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Link Pasta Google Drive (Auto-gerado ao enviar)</label>
+            <input type="url" id="inp-drive" placeholder="Gerado automaticamente no Drive 5TB..." oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-[#00B4D8] focus:outline-none" />
           </div>
 
           <div>
@@ -359,7 +387,7 @@
               <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-chassi" checked onchange="updateLivePreview()"> Foto Chassi / Etiqueta VIN</label>
               <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-angulos" checked onchange="updateLivePreview()"> 4 Ângulos (Frente/Tras/Lados)</label>
               <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chk-detalhe" checked onchange="updateLivePreview()"> Foto Aberta e Fechada do Dano</label>
-              <label class="flex items-center gap-2 cursor-pointer font-semibold text-indigo-700"><input type="checkbox" id="chk-cte" checked onchange="updateLivePreview()"> CT-e Digitalizado</label>
+              <label class="flex items-center gap-2 cursor-pointer font-semibold text-indigo-700"><input type="checkbox" id="chk-cte" checked onchange="updateLivePreview()"> CT-e Digitalizado (c/ Ressalva)</label>
               <label class="flex items-center gap-2 cursor-pointer font-semibold text-indigo-700"><input type="checkbox" id="chk-nfe" checked onchange="updateLivePreview()"> NF-e Digitalizada</label>
             </div>
           </div>
@@ -393,7 +421,7 @@
 
             <div>
               <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Corpo do E-mail</label>
-              <textarea id="prev-corpo" rows="13" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-700 focus:outline-none"></textarea>
+              <textarea id="prev-corpo" rows="14" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-700 focus:outline-none"></textarea>
             </div>
           </div>
 
@@ -417,7 +445,7 @@
       <div class="bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Importação de Pasta em Lote → Google Drive 5TB</h2>
-          <p class="text-xs text-slate-500">Selecione a pasta do computador. As fotos vão direto para os seus <strong>5 TB do Google Drive</strong> e apenas os links visuais leves vão para a planilha do site.</p>
+          <p class="text-xs text-slate-500">Selecione a pasta do computador. As fotos e PDFs vão direto para os seus <strong>5 TB do Google Drive</strong> e apenas os links visuais leves vão para a planilha do site.</p>
         </div>
 
         <label class="border-2 border-dashed border-cyan-400 bg-cyan-50/30 hover:bg-cyan-50/70 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition">
@@ -429,10 +457,10 @@
 
         <div id="lote-resultados" class="hidden space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-            <h3 class="font-bold text-sm text-slate-800">Veículos Detectados (<span id="lote-count">0</span>) — Revise o Modelo antes de enviar:</h3>
+            <h3 class="font-bold text-sm text-slate-800">Veículos Detectados (<span id="lote-count">0</span>) — Revise antes de enviar:</h3>
             <div class="flex flex-wrap items-center gap-2">
               <button type="button" id="btn-ai-lote" onclick="analisarLoteComIA()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow transition">
-                ✨ Identificar Modelos & Danos com IA
+                ✨ Ler Fotos & PDFs com IA
               </button>
               <button type="button" id="btn-salvar-lote" onclick="salvarLoteNaPlanilha()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
                 ✅ Subir p/ Drive 5TB & Salvar na Planilha
@@ -451,10 +479,10 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-bold text-slate-900">Planilha de Controle Dimas GWM</h2>
-            <p class="text-xs text-slate-500">Controle de SLA 72h, Pasta Drive 5TB, Dossiê Visual, Orçamento/OS e Confirmação OK</p>
+            <p class="text-xs text-slate-500">Controle de SLA 72h, Pasta Drive 5TB, Dossiê Visual, Cobrança GWM e Confirmação OK</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <input type="text" id="filtro-busca" placeholder="Buscar chassi ou modelo..." oninput="renderPlanilha()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-[#00B4D8] focus:outline-none" />
+            <input type="text" id="filtro-busca" placeholder="Buscar chassi, modelo ou transp..." oninput="renderPlanilha()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-[#00B4D8] focus:outline-none" />
             <select id="filtro-tipo" onchange="renderPlanilha()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white">
               <option value="Todos">Todos os Tipos</option>
               <option value="Avaria">Apenas Avarias</option>
@@ -473,13 +501,13 @@
                 <th class="p-3">Data / SLA 72h</th>
                 <th class="p-3">Tipo</th>
                 <th class="p-3">Modelo GWM</th>
-                <th class="p-3">Chassi</th>
+                <th class="p-3">Chassi / Transp.</th>
                 <th class="p-3">Descrição</th>
                 <th class="p-3">Dossiê & Drive 5TB</th>
                 <th class="p-3">OK Funilaria</th>
                 <th class="p-3">Protocolo</th>
                 <th class="p-3">Status</th>
-                <th class="p-3 text-center">Ações</th>
+                <th class="p-3 text-center">Ações & Cobrança</th>
               </tr>
             </thead>
             <tbody id="tabela-corpo" class="divide-y divide-slate-200 bg-white"></tbody>
@@ -497,10 +525,10 @@
             <span class="text-lg">✨</span>
             <h2 class="text-base font-extrabold">Inteligência Artificial (Google Gemini)</h2>
           </div>
-          <p class="text-xs text-slate-300">Cole sua chave gratuita do Google AI Studio (<code class="text-cyan-300">aistudio.google.com/apikey</code>) para ativar a leitura automática de fotos, chassi, modelos GWM e redação técnica. Ela fica salva com segurança no seu Firebase.</p>
+          <p class="text-xs text-slate-300">Cole sua chave gratuita do Google AI Studio (<code class="text-cyan-300">aistudio.google.com/apikey</code>) para ativar a leitura automática de fotos, PDFs de CT-e/NF-e, modelos GWM e redação técnica.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 flex-1 max-w-md">
-          <input type="password" id="inp-gemini-key" placeholder="Cole sua chave AIzaSy..." class="flex-1 rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2.5 text-xs font-mono text-white focus:border-purple-400 focus:outline-none" />
+          <input type="password" id="inp-gemini-key" placeholder="Cole sua chave..." class="flex-1 rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2.5 text-xs font-mono text-white focus:border-purple-400 focus:outline-none" />
           <button onclick="salvarChaveGemini()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
             Salvar Chave IA
           </button>
@@ -562,6 +590,9 @@
           <a id="mod-btn-drive" href="#" target="_blank" class="hidden bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition">
             📂 Abrir Pasta Drive 5TB
           </a>
+          <button onclick="cobrarRetornoModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition">
+            ⏳ Cobrar Retorno GWM
+          </button>
           <button onclick="imprimirTermoPDF()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition">
             🖨️ Gerar Ficha / Termo PDF
           </button>
@@ -634,7 +665,7 @@
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase text-slate-600">Fotos & Documentos no Drive 5TB (<span id="mod-qtd-anexos">0</span>)</span>
           <label class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
-            + Enviar Mais Fotos p/ Drive
+            + Enviar Mais Fotos/PDFs p/ Drive
             <input type="file" multiple accept="image/*,.pdf" onchange="anexarNoModal(event)" class="hidden" />
           </label>
         </div>
@@ -744,6 +775,7 @@
       registros = snap.docs.map(d => d.data());
       document.getElementById("badge-total").textContent = registros.length;
       document.getElementById("cloud-status-login").textContent = "🟢 Conectado (Firebase + Drive 5TB)";
+      verificarAlertasSLA();
       renderDashboard();
       renderPlanilha();
       if (modalRegistroId) {
@@ -771,6 +803,28 @@
       await deleteDoc(doc(db, "usuarios", String(id)));
     }
 
+    // ALERTA PROATIVO DE SLA 72H (FUNCIONALIDADE 3)
+    function verificarAlertasSLA() {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const criticos = registros.filter(r => {
+        if (r.status === "Concluído" || !r.data) return false;
+        const rec = new Date(r.data + "T00:00:00");
+        const diffDias = Math.floor((hoje - rec) / (1000 * 60 * 60 * 24));
+        return diffDias >= 2 && !(r.protocolo || "").trim();
+      });
+
+      const banner = document.getElementById("sla-critical-banner");
+      if (criticos.length > 0) {
+        const listaChassis = criticos.map(c => `${c.modelo} (#${c.chassi.slice(-6)})`).join(", ");
+        document.getElementById("sla-critical-text").textContent =
+          `ALERTA SLA 72H: ${criticos.length} veículo(s) com 48h+ sem Protocolo GWM registrado: ${listaChassis}`;
+        banner.classList.remove("hidden");
+      } else {
+        banner.classList.add("hidden");
+      }
+    }
+
     // UPLOAD PARA GOOGLE DRIVE 5TB VIA APPS SCRIPT
     async function enviarArquivosParaDrive5TB(folderName, arquivosList) {
       if (!arquivosList || !arquivosList.length) return { folderUrl: "", files: [] };
@@ -792,22 +846,26 @@
       return { folderUrl: result.folderUrl, files: result.files };
     }
 
-    // INTELIGÊNCIA ARTIFICIAL GEMINI (VISÃO + TEXTO)
-    async function chamarGemini(promptTexto, imagensAnexas = []) {
+    // INTELIGÊNCIA ARTIFICIAL GEMINI: LÊ IMAGENS + PDFs (CT-e e NF-e) (FUNCIONALIDADE 1)
+    async function chamarGemini(promptTexto, anexosList = []) {
       if (!geminiApiKey) {
         switchTab("usuarios");
-        alert("Cole sua chave gratuita do Google AI Studio na aba 'Config & IA' no topo para ativar a Inteligência Artificial!");
+        alert("Cole sua chave do Google AI Studio na aba 'Config & IA' no topo para ativar a Inteligência Artificial!");
         throw new Error("Sem chave Gemini");
       }
 
       const parts = [{ text: promptTexto }];
-      imagensAnexas.filter(a => a.tipo.startsWith("image/")).slice(0, 4).forEach(img => {
-        parts.push({
-          inline_data: {
-            mime_type: "image/jpeg",
-            data: img.dataUrl.split(",")[1]
-          }
-        });
+      anexosList.slice(0, 6).forEach(arq => {
+        const isImg = (arq.tipo || "").startsWith("image/");
+        const isPdf = (arq.tipo || "") === "application/pdf" || (arq.nome || "").toLowerCase().endsWith(".pdf");
+        if ((isImg || isPdf) && arq.dataUrl && arq.dataUrl.includes(",")) {
+          parts.push({
+            inline_data: {
+              mime_type: isPdf ? "application/pdf" : "image/jpeg",
+              data: arq.dataUrl.split(",")[1]
+            }
+          });
+        }
       });
 
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`, {
@@ -821,17 +879,29 @@
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
-    window.analisarFotosComIA = async function() {
+    window.analisarArquivosComIA = async function() {
       if (!anexosTemp.length) {
-        alert("Anexe primeiro as fotos da avaria ou da etiqueta do chassi na caixa azul acima!");
+        alert("Anexe primeiro as fotos do veículo e/ou os PDFs de CT-e e NF-e na caixa azul acima!");
         return;
       }
       const btn = document.getElementById("btn-ai-analyze");
+      const alertBox = document.getElementById("ai-cte-alert");
       btn.disabled = true;
-      btn.innerHTML = "⏳ Analisando fotos com IA...";
+      btn.innerHTML = "⏳ Lendo fotos, CT-e e NF-e com IA...";
+      alertBox.classList.add("hidden");
+
       try {
-        const prompt = `Você é um vistoriador técnico de veículos 0km da concessionária Dimas GWM. Analise as imagens enviadas e responda APENAS em JSON válido (sem markdown) neste formato exato:
-{"modelo": "um destes: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM", "chassi": "número VIN de 17 dígitos se visível na foto ou vazio", "tipo": "Avaria ou Item Faltante", "descricao": "descrição técnica objetiva da peça afetada e tipo de dano (ex: Risco profundo no para-choque dianteiro lado esquerdo)"}`;
+        const prompt = `Você é um auditor e vistoriador técnico de veículos 0km da concessionária Dimas GWM. Analise TODAS as imagens e PDFs anexados (fotos do carro, etiqueta VIN, CT-e e NF-e) e responda APENAS em JSON válido (sem markdown) neste formato exato:
+{
+  "modelo": "um destes exatos: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM",
+  "chassi": "número VIN completo de 17 caracteres extraído da NF-e, CT-e ou etiqueta, ou vazio",
+  "transportadora": "nome da transportadora/cegonha extraído do CT-e/NF-e ou vazio",
+  "docFiscal": "número da NF-e e/ou CT-e encontrados (ex: NF 12345 / CT-e 678) ou vazio",
+  "temRessalvaCte": "sim, nao, ou sem_cte",
+  "auditoriaCte": "resumo curto sobre o que consta no CT-e/NF-e ou alerta se o CT-e não tiver ressalva escrita",
+  "tipo": "Avaria ou Item Faltante",
+  "descricao": "descrição técnica objetiva da peça afetada e dano encontrado"
+}`;
 
         const raw = await chamarGemini(prompt, anexosTemp);
         const cleanJson = raw.replace(/```json|```/g, "").trim();
@@ -843,18 +913,36 @@
         if (parsed.chassi && parsed.chassi.length >= 6) {
           document.getElementById("inp-chassi").value = parsed.chassi.toUpperCase();
         }
+        if (parsed.transportadora) {
+          document.getElementById("inp-transportadora").value = parsed.transportadora;
+        }
+        if (parsed.docFiscal) {
+          document.getElementById("inp-docfiscal").value = parsed.docFiscal;
+        }
         if (parsed.tipo === "Item Faltante" || parsed.tipo === "Avaria") {
           setTipoOcorrencia(parsed.tipo);
         }
         if (parsed.descricao) {
           document.getElementById("inp-descricao").value = parsed.descricao;
         }
+
+        // Auditoria de Ressalva no CT-e
+        if (parsed.temRessalvaCte === "nao") {
+          alertBox.className = "rounded-xl p-3 text-xs font-semibold border bg-rose-50 border-rose-300 text-rose-800";
+          alertBox.innerHTML = `⚠️ <strong>Auditoria CT-e (IA):</strong> ${parsed.auditoriaCte || "Nenhuma ressalva de avaria identificada no CT-e anexado! Confira se o motorista assinou a ressalva no verso/canhoto."}`;
+          alertBox.classList.remove("hidden");
+        } else if (parsed.temRessalvaCte === "sim") {
+          alertBox.className = "rounded-xl p-3 text-xs font-semibold border bg-emerald-50 border-emerald-300 text-emerald-800";
+          alertBox.innerHTML = `✅ <strong>Auditoria CT-e (IA):</strong> ${parsed.auditoriaCte || "Ressalva identificada no documento de transporte."}`;
+          alertBox.classList.remove("hidden");
+        }
+
         updateLivePreview();
       } catch (e) {
         if (e.message !== "Sem chave Gemini") alert("Erro na análise IA: " + e.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = "<span>✨</span> Preencher com IA (Fotos/Docs)";
+        btn.innerHTML = "<span>✨</span> Ler Fotos & PDFs (CT-e/NF-e) com IA";
       }
     };
 
@@ -877,15 +965,17 @@
       btn.disabled = true;
       try {
         for (let i = 0; i < loteTemp.length; i++) {
-          btn.textContent = `⏳ IA analisando veículo ${i + 1} de ${loteTemp.length}...`;
+          btn.textContent = `⏳ IA lendo veículo ${i + 1} de ${loteTemp.length}...`;
           const item = loteTemp[i];
           if (!item.anexos || !item.anexos.length) continue;
-          const prompt = `Analise as fotos deste veículo 0km GWM e responda APENAS em JSON válido (sem markdown):
-{"modelo": "um destes: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM", "chassi": "VIN se visível ou vazio", "descricao": "descrição técnica curta da avaria ou item faltante"}`;
+          const prompt = `Analise as fotos e PDFs (CT-e/NF-e) deste veículo 0km GWM e responda APENAS em JSON válido (sem markdown):
+{"modelo": "um destes: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM", "chassi": "VIN de 17 dígitos se visível ou vazio", "transportadora": "transportadora do CT-e/NF-e ou vazio", "docFiscal": "número NF-e/CT-e ou vazio", "descricao": "descrição técnica curta da avaria ou item faltante"}`;
           const raw = await chamarGemini(prompt, item.anexos);
           const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
           if (parsed.modelo && MODELOS_GWM.includes(parsed.modelo)) item.modelo = parsed.modelo;
           if (parsed.chassi && parsed.chassi.length >= 6) item.chassi = parsed.chassi.toUpperCase();
+          if (parsed.transportadora) item.transportadora = parsed.transportadora;
+          if (parsed.docFiscal) item.docFiscal = parsed.docFiscal;
           if (parsed.descricao) item.descricao = parsed.descricao;
         }
         renderCardsLote();
@@ -893,7 +983,7 @@
         if (e.message !== "Sem chave Gemini") alert("Erro IA no lote: " + e.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = "✨ Identificar Modelos & Danos com IA";
+        btn.textContent = "✨ Ler Fotos & PDFs com IA";
       }
     };
 
@@ -917,16 +1007,22 @@
       item.historico.unshift(`${agora} — ${acao} (${autor})`);
     }
 
-    function getBadgeSLA(dataStr, status) {
+    function calcDiasAberto(dataStr, dataConclusaoStr) {
+      if (!dataStr) return 0;
+      const ini = new Date(dataStr + "T00:00:00");
+      const fim = dataConclusaoStr ? new Date(dataConclusaoStr + "T00:00:00") : new Date();
+      fim.setHours(0, 0, 0, 0);
+      return Math.max(0, Math.floor((fim - ini) / (1000 * 60 * 60 * 24)));
+    }
+
+    function getBadgeSLA(dataStr, status, protocolo) {
       if (status === "Concluído" || !dataStr) return "";
-      const rec = new Date(dataStr + "T00:00:00");
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const diffDias = Math.floor((hoje - rec) / (1000 * 60 * 60 * 24));
+      const diffDias = calcDiasAberto(dataStr, null);
+      const semProt = !(protocolo || "").trim();
       if (diffDias <= 0) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">🟢 No Prazo (0-24h)</span>`;
       if (diffDias === 1) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[10px] font-bold">🔵 24h-48h (SLA 72h)</span>`;
-      if (diffDias === 2) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold">🟡 Último Dia (48h-72h)</span>`;
-      return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d (SLA 72h Estourado)</span>`;
+      if (diffDias === 2) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 text-[10px] font-bold">🟡 48h-72h ${semProt ? "(Sem Protocolo!)" : ""}</span>`;
+      return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d ${semProt ? "(SLA Estourado)" : "em aberto"}</span>`;
     }
 
     // LOGIN
@@ -1043,6 +1139,8 @@
         obj.nfe ? "NF-e digitalizada" : null
       ].filter(Boolean).join(" + ") || "Documentos em conferência";
 
+      const transpLinha = obj.transportadora ? `\n- Transportadora: ${obj.transportadora}` : "";
+      const fiscalLinha = obj.docFiscal ? `\n- Documento Fiscal: ${obj.docFiscal}` : "";
       const driveLinha = obj.drive ? `\n- Link Pasta Google Drive: ${obj.drive}` : "";
 
       const corpo = `Olá, equipe de Atendimento GWM,
@@ -1054,7 +1152,7 @@ DADOS DO VEÍCULO:
 - Data do Recebimento: ${dataBR}
 - Modelo / Versão: ${obj.modelo}
 - Chassi Completo (VIN): ${chassi}
-- Tipo de Ocorrência: ${obj.tipo}${driveLinha}
+- Tipo de Ocorrência: ${obj.tipo}${transpLinha}${fiscalLinha}${driveLinha}
 
 DESCRIÇÃO DO OCORRIDO:
 - ${obj.descricao || "[Descrever avaria ou item faltante]"}
@@ -1072,6 +1170,45 @@ Dimas GWM`;
       return { to: EMAIL_TO, cc: getCCList(obj.tipo).join(", "), assunto, corpo, pasta, ult6 };
     }
 
+    // E-MAIL DE COBRANÇA / FOLLOW-UP AUTOMÁTICO GWM (FUNCIONALIDADE 3)
+    window.cobrarRetornoGWM = async function(id) {
+      const item = registros.find(r => r.id === id);
+      if (!item) return;
+
+      const dias = calcDiasAberto(item.data, null);
+      const dataBR = item.data ? item.data.split("-").reverse().join("/") : "-";
+      const protTxt = item.protocolo ? `Protocolo #${item.protocolo}` : "Sem protocolo retornado até o momento";
+      const assunto = `[COBRANÇA / FOLLOW-UP] Dimas GWM - ${item.modelo} - Chassi: ${item.chassi.slice(-6)} (${protTxt})`;
+
+      const corpo = `Olá, equipe de Atendimento GWM,
+
+Solicitamos atualização urgente sobre o atendimento referente ao veículo 0km abaixo, recebido há ${dias} dia(s) na concessionária Dimas GWM:
+
+- Modelo: ${item.modelo}
+- Chassi (VIN): ${item.chassi}
+- Data do Recebimento: ${dataBR}
+- Protocolo GWM: ${item.protocolo || "Pendente de abertura/retorno"}
+- Status Atual: ${item.status} (${item.statusRessarcimento || "Pendente"})
+- Ocorrência: ${item.descricao}
+${item.drive ? `- Link Evidências (Drive): ${item.drive}\n` : ""}
+Aguardamos posicionamento para liberação do veículo ao cliente / aprovação de ressarcimento.
+
+Atenciosamente,
+Equipe Logística / Pós-Venda
+Dimas GWM`;
+
+      registrarLog(item, `E-mail de cobrança/follow-up GWM disparado (${dias}d em aberto)`);
+      await salvarRegistroNuvem(item);
+
+      const cc = getCCList(item.tipo).join(", ");
+      const webUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(EMAIL_TO)}&cc=${encodeURIComponent(cc)}&subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+      window.open(webUrl, "_blank");
+    };
+
+    window.cobrarRetornoModal = function() {
+      if (modalRegistroId) cobrarRetornoGWM(modalRegistroId);
+    };
+
     window.updateLivePreview = function() {
       const chassi = document.getElementById("inp-chassi").value.trim();
       document.getElementById("chassi-badge").textContent = chassi.length >= 6 ? `(Final: ${chassi.slice(-6)})` : "";
@@ -1081,6 +1218,8 @@ Dimas GWM`;
         data: document.getElementById("inp-data").value,
         modelo: document.getElementById("inp-modelo").value,
         chassi: chassi,
+        transportadora: document.getElementById("inp-transportadora").value.trim(),
+        docFiscal: document.getElementById("inp-docfiscal").value.trim(),
         drive: document.getElementById("inp-drive").value.trim(),
         descricao: document.getElementById("inp-descricao").value.trim(),
         cte: document.getElementById("chk-cte").checked,
@@ -1131,6 +1270,8 @@ Dimas GWM`;
         data: document.getElementById("inp-data").value,
         modelo: document.getElementById("inp-modelo").value,
         chassi: document.getElementById("inp-chassi").value.trim(),
+        transportadora: document.getElementById("inp-transportadora").value.trim(),
+        docFiscal: document.getElementById("inp-docfiscal").value.trim(),
         drive: document.getElementById("inp-drive").value.trim(),
         descricao: document.getElementById("inp-descricao").value.trim(),
         cte: document.getElementById("chk-cte").checked,
@@ -1139,7 +1280,7 @@ Dimas GWM`;
       dispararEmail(obj, modo);
     };
 
-    // LEITURA DE ARQUIVOS EM ALTA QUALIDADE PARA DRIVE 5TB
+    // LEITURA DE ARQUIVOS EM ALTA QUALIDADE PARA DRIVE 5TB + IA
     function lerArquivoParaDrive(file) {
       return new Promise(resolve => {
         const reader = new FileReader();
@@ -1222,9 +1363,12 @@ Dimas GWM`;
         const novo = {
           id: Date.now(),
           data: dataVal,
+          dataConclusao: "",
           tipo: tipoAtual,
           modelo: modeloVal,
           chassi: chassi,
+          transportadora: document.getElementById("inp-transportadora").value.trim(),
+          docFiscal: document.getElementById("inp-docfiscal").value.trim(),
           drive: driveFolderUrl,
           descricao: descricao,
           cte: document.getElementById("chk-cte").checked,
@@ -1240,14 +1384,17 @@ Dimas GWM`;
           status: "Aguardando GWM",
           historico: []
         };
-        registrarLog(novo, `Ocorrência registrada (${novo.modelo}) e fotos enviadas ao Drive 5TB`);
+        registrarLog(novo, `Ocorrência registrada (${novo.modelo}) e arquivos enviados ao Drive 5TB`);
 
         await salvarRegistroNuvem(novo);
         dispararEmail(novo, modo);
 
         document.getElementById("inp-chassi").value = "";
+        document.getElementById("inp-transportadora").value = "";
+        document.getElementById("inp-docfiscal").value = "";
         document.getElementById("inp-descricao").value = "";
         document.getElementById("inp-drive").value = "";
+        document.getElementById("ai-cte-alert").classList.add("hidden");
         anexosTemp.length = 0;
         renderAnexosTemp();
         updateLivePreview();
@@ -1284,7 +1431,9 @@ Dimas GWM`;
 
       document.getElementById("mod-tipo").textContent = r.tipo;
       document.getElementById("mod-titulo").textContent = `${r.modelo} — Chassi ${r.chassi}`;
-      document.getElementById("mod-subtitulo").textContent = `Recebimento: ${r.data ? r.data.split("-").reverse().join("/") : "-"} • Status: ${r.status}`;
+      const transpInfo = r.transportadora ? ` • Transp.: ${r.transportadora}` : "";
+      const fiscalInfo = r.docFiscal ? ` • Doc: ${r.docFiscal}` : "";
+      document.getElementById("mod-subtitulo").textContent = `Recebimento: ${r.data ? r.data.split("-").reverse().join("/") : "-"}${transpInfo}${fiscalInfo} • Status: ${r.status}`;
       document.getElementById("mod-descricao").textContent = r.descricao;
 
       const btnDrive = document.getElementById("mod-btn-drive");
@@ -1386,6 +1535,7 @@ Dimas GWM`;
           <table>
             <tr><th>Concessionária</th><td>Dimas GWM</td><th>Data Recebimento</th><td>${dataBR}</td></tr>
             <tr><th>Modelo / Versão</th><td>${r.modelo}</td><th>Chassi (VIN)</th><td><strong>${r.chassi}</strong></td></tr>
+            <tr><th>Transportadora</th><td>${r.transportadora || "-"}</td><th>NF-e / CT-e</th><td>${r.docFiscal || "-"}</td></tr>
             <tr><th>Tipo Ocorrência</th><td>${r.tipo}</td><th>Protocolo GWM</th><td>${r.protocolo || "Pendente"}</td></tr>
             <tr><th>Nº OS Funilaria</th><td>${r.osNumero || "-"}</td><th>Orçamento</th><td>R$ ${(r.valorOrcamento || 0).toFixed(2)}</td></tr>
             <tr><th>Status Peças</th><td>${r.statusPeca || "-"}</td><th>Ressarcimento</th><td>${r.statusRessarcimento || "-"}</td></tr>
@@ -1399,6 +1549,112 @@ Dimas GWM`;
             <div class="line">Analista de Funilaria / Motorista Carreta<br/>Conferência e Recebimento</div>
           </div>
           <script>window.onload = () => setTimeout(() => window.print(), 600);<\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    };
+
+    // RELATÓRIO GERENCIAL MENSAL / EXECUTIVO PARA DIRETORIA E MONTADORA (FUNCIONALIDADE 4)
+    window.gerarBoletimExecutivo = function() {
+      const agora = new Date();
+      const dados = registros.filter(r => {
+        if (periodoAtual === "all" || !r.data) return true;
+        const d = new Date(r.data + "T00:00:00");
+        if (periodoAtual === "month") return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+        if (periodoAtual === "7days") return (agora - d) / (1000 * 60 * 60 * 24) <= 7;
+        return true;
+      });
+
+      const periodoTitulo = periodoAtual === "month" ? "Mês Atual" : periodoAtual === "7days" ? "Últimos 7 Dias" : "Consolidado Geral";
+      const total = dados.length;
+      const avarias = dados.filter(d => d.tipo === "Avaria").length;
+      const faltantes = dados.filter(d => d.tipo === "Item Faltante").length;
+      const concluidos = dados.filter(d => d.status === "Concluído").length;
+
+      const valorOrcado = dados.reduce((s, x) => s + (Number(x.valorOrcamento) || 0), 0);
+      const valorRessarcido = dados.filter(x => x.statusRessarcimento === "Pago / Ressarcido" || x.statusRessarcimento === "Aprovado GWM")
+        .reduce((s, x) => s + (Number(x.valorOrcamento) || 0), 0);
+      const valorPendente = valorOrcado - valorRessarcido;
+
+      // Ranking por Transportadora
+      const transpMap = {};
+      dados.forEach(d => {
+        const t = (d.transportadora || "Não informada").trim();
+        transpMap[t] = (transpMap[t] || 0) + 1;
+      });
+      const transpRows = Object.entries(transpMap).sort((a, b) => b[1] - a[1])
+        .map(([nome, qtd]) => `<tr><td>${nome}</td><td><strong>${qtd}</strong></td><td>${total ? ((qtd / total) * 100).toFixed(0) : 0}%</td></tr>`).join("");
+
+      // Ranking por Modelo
+      const modMap = {};
+      dados.forEach(d => { modMap[d.modelo] = (modMap[d.modelo] || 0) + 1; });
+      const modRows = Object.entries(modMap).sort((a, b) => b[1] - a[1])
+        .map(([nome, qtd]) => `<tr><td>${nome}</td><td><strong>${qtd}</strong></td></tr>`).join("");
+
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Relatório Gerencial 0km — Dimas GWM (${periodoTitulo})</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #0f172a; padding: 32px; max-width: 900px; margin: auto; }
+            .header { display: flex; justify-content: space-between; align-items: center; background: #0D1C26; color: #fff; padding: 18px 24px; border-radius: 12px; }
+            h2 { font-size: 16px; margin: 24px 0 10px; border-bottom: 2px solid #0D1C26; padding-bottom: 5px; text-transform: uppercase; }
+            .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+            .kpi { border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; background: #f8fafc; }
+            .kpi .lbl { font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+            .kpi .val { font-size: 20px; font-weight: 800; margin-top: 4px; color: #0D1C26; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #0D1C26; color: #fff; }
+            .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div><strong>DIMAS 50 ANOS</strong> &nbsp;|&nbsp; <strong>GWM</strong> Hello, tomorrow.</div>
+            <div style="text-align:right; font-size:12px;">Boletim Executivo Pós-Venda & Logística 0km<br/>Período: <strong>${periodoTitulo}</strong> • Emissão: ${new Date().toLocaleDateString("pt-BR")}</div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi"><div class="lbl">Total Ocorrências</div><div class="val">${total}</div><div style="font-size:11px;color:#475569;">${avarias} avarias • ${faltantes} faltantes</div></div>
+            <div class="kpi"><div class="lbl">Concluídos</div><div class="val">${concluidos}</div><div style="font-size:11px;color:#475569;">${total - concluidos} em andamento</div></div>
+            <div class="kpi"><div class="lbl">Total Orçado</div><div class="val">R$ ${valorOrcado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div></div>
+            <div class="kpi"><div class="lbl">Aprovado / Ressarcido</div><div class="val" style="color:#059669;">R$ ${valorRessarcido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div><div style="font-size:11px;color:#dc2626;">Pendente: R$ ${valorPendente.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div></div>
+          </div>
+
+          <div class="grid2">
+            <div>
+              <h2>Incidência por Transportadora</h2>
+              <table><thead><tr><th>Transportadora</th><th>Qtd</th><th>%</th></tr></thead><tbody>${transpRows || "<tr><td colspan='3'>Sem dados</td></tr>"}</tbody></table>
+            </div>
+            <div>
+              <h2>Incidência por Modelo GWM</h2>
+              <table><thead><tr><th>Modelo GWM</th><th>Qtd</th></tr></thead><tbody>${modRows || "<tr><td colspan='2'>Sem dados</td></tr>"}</tbody></table>
+            </div>
+          </div>
+
+          <h2>Detalhamento dos Veículos no Período</h2>
+          <table>
+            <thead><tr><th>Data</th><th>Modelo</th><th>Chassi</th><th>Transp.</th><th>Ocorrência</th><th>Orçamento</th><th>Status</th></tr></thead>
+            <tbody>
+              ${dados.map(d => `
+                <tr>
+                  <td>${d.data ? d.data.split("-").reverse().join("/") : "-"}</td>
+                  <td>${d.modelo}</td>
+                  <td><strong>${d.chassi.slice(-6)}</strong></td>
+                  <td>${d.transportadora || "-"}</td>
+                  <td>${d.descricao}</td>
+                  <td>R$ ${(Number(d.valorOrcamento) || 0).toFixed(2)}</td>
+                  <td>${d.status}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
         </body>
         </html>
       `);
@@ -1477,6 +1733,8 @@ Dimas GWM`;
           tipo: isFaltante ? "Item Faltante" : "Avaria",
           modelo: modeloDetectado,
           chassi: lastToken,
+          transportadora: "",
+          docFiscal: "",
           descricao: descExtraida,
           cte: arqs.some(a => a.includes("cte") || a.includes("ct-e") || a.endsWith(".pdf")),
           nfe: arqs.some(a => a.includes("nfe") || a.includes("nf-e") || a.includes("nota")),
@@ -1513,6 +1771,7 @@ Dimas GWM`;
             </select>
             <input type="text" value="${item.chassi}" onchange="loteTemp[${i}].chassi=this.value.toUpperCase()" class="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-mono uppercase" placeholder="Chassi" />
           </div>
+          <input type="text" value="${item.transportadora || ""}" onchange="loteTemp[${i}].transportadora=this.value" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="Transportadora (opcional)" />
           <input type="text" value="${item.descricao}" onchange="loteTemp[${i}].descricao=this.value" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="Descrição da avaria" />
         </div>
       `).join("");
@@ -1535,9 +1794,12 @@ Dimas GWM`;
           const reg = {
             id: Date.now() + idx,
             data: item.data,
+            dataConclusao: "",
             tipo: item.tipo,
             modelo: item.modelo,
             chassi: item.chassi,
+            transportadora: item.transportadora || "",
+            docFiscal: item.docFiscal || "",
             drive: driveResp.folderUrl || "",
             descricao: item.descricao,
             cte: item.cte,
@@ -1575,7 +1837,10 @@ Dimas GWM`;
       const tipoFiltro = document.getElementById("filtro-tipo").value;
 
       const filtrados = registros.filter(r => {
-        const matchTexto = r.chassi.toLowerCase().includes(busca) || r.modelo.toLowerCase().includes(busca) || r.descricao.toLowerCase().includes(busca);
+        const matchTexto = r.chassi.toLowerCase().includes(busca) ||
+          r.modelo.toLowerCase().includes(busca) ||
+          r.descricao.toLowerCase().includes(busca) ||
+          (r.transportadora || "").toLowerCase().includes(busca);
         const matchTipo = tipoFiltro === "Todos" || r.tipo === tipoFiltro;
         return matchTexto && matchTipo;
       });
@@ -1588,7 +1853,7 @@ Dimas GWM`;
 
       tbody.innerHTML = filtrados.map(r => {
         const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
-        const badgeSla = getBadgeSLA(r.data, r.status);
+        const badgeSla = getBadgeSLA(r.data, r.status, r.protocolo);
         const badgeTipo = r.tipo === "Avaria"
           ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Avaria</span>`
           : `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Faltante</span>`;
@@ -1615,7 +1880,10 @@ Dimas GWM`;
                 ${MODELOS_GWM.map(m => `<option value="${m}" ${r.modelo === m ? "selected" : ""}>${m}</option>`).join("")}
               </select>
             </td>
-            <td class="p-3 whitespace-nowrap font-mono font-bold text-cyan-700">${r.chassi.slice(-6)}</td>
+            <td class="p-3 whitespace-nowrap">
+              <div class="font-mono font-bold text-cyan-700">${r.chassi.slice(-6)}</div>
+              ${r.transportadora ? `<div class="text-[10px] text-slate-500 font-semibold">${r.transportadora}</div>` : ""}
+            </td>
             <td class="p-3 max-w-xs truncate" title="${r.descricao}">${r.descricao}</td>
             <td class="p-3 whitespace-nowrap">
               <button onclick="abrirModalDossie(${r.id})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-[11px] font-bold">
@@ -1637,9 +1905,9 @@ Dimas GWM`;
               </select>
             </td>
             <td class="p-3 whitespace-nowrap text-center space-x-1">
+              <button onclick="cobrarRetornoGWM(${r.id})" title="Cobrar Retorno GWM (Follow-up Outlook)" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-lg font-bold">⏳</button>
               <button onclick="avisarWhatsAppLinha(${r.id})" title="Avisar Funilaria no WhatsApp" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-bold">💬</button>
-              <button onclick="reenviarEmail(${r.id}, 'app')" title="Outlook App" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-1 rounded-lg font-bold">✉️</button>
-              <button onclick="reenviarEmail(${r.id}, 'web')" title="Outlook Web (Nova Aba)" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-700 px-2 py-1 rounded-lg font-bold">🌐</button>
+              <button onclick="reenviarEmail(${r.id}, 'web')" title="Abrir E-mail Inicial Outlook Web" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-700 px-2 py-1 rounded-lg font-bold">🌐</button>
               <button onclick="excluirRegistro(${r.id})" title="Excluir" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-lg font-bold">🗑️</button>
             </td>
           </tr>
@@ -1651,6 +1919,9 @@ Dimas GWM`;
       const item = registros.find(r => r.id === id);
       if (item) {
         item[campo] = valor;
+        if (campo === "status") {
+          item.dataConclusao = valor === "Concluído" ? new Date().toISOString().split("T")[0] : "";
+        }
         registrarLog(item, `Campo "${campo}" alterado para "${valor}"`);
         await salvarRegistroNuvem(item);
       }
@@ -1677,9 +1948,11 @@ Dimas GWM`;
 
     window.exportarCSV = function() {
       if (!registros.length) return alert("Sem registros para exportar.");
-      const headers = ["Data", "Tipo", "Modelo", "Chassi", "Descricao", "Pasta Drive", "OS Funilaria", "Valor Orcamento", "Status Pecas", "Ressarcimento GWM", "OK Funilaria", "Confirmado Por", "Protocolo GWM", "Status"];
+      const headers = ["Data", "Tipo", "Modelo", "Chassi", "Transportadora", "Doc Fiscal", "Descricao", "Pasta Drive", "OS Funilaria", "Valor Orcamento", "Status Pecas", "Ressarcimento GWM", "OK Funilaria", "Confirmado Por", "Protocolo GWM", "Status"];
       const rows = registros.map(r => [
         r.data, r.tipo, r.modelo, r.chassi,
+        `"${(r.transportadora || "").replace(/"/g, '""')}"`,
+        `"${(r.docFiscal || "").replace(/"/g, '""')}"`,
         `"${(r.descricao || "").replace(/"/g, '""')}"`,
         r.drive || "",
         r.osNumero || "",
@@ -1800,8 +2073,16 @@ Dimas GWM`;
       const semOk = dados.filter(d => !d.okFunilaria).length;
       const comOk = dados.filter(d => d.okFunilaria).length;
       const aguardando = dados.filter(d => d.status === "Aguardando GWM").length;
-      const concluidos = dados.filter(d => d.status === "Concluído").length;
+      const concluidosList = dados.filter(d => d.status === "Concluído");
+      const concluidos = concluidosList.length;
       const valorTotal = dados.reduce((acc, cur) => acc + (Number(cur.valorOrcamento) || 0), 0);
+
+      // Lead time médio dos concluídos
+      let mediaDias = 0;
+      if (concluidos > 0) {
+        const somaDias = concluidosList.reduce((acc, cur) => acc + calcDiasAberto(cur.data, cur.dataConclusao || null), 0);
+        mediaDias = Math.round(somaDias / concluidos);
+      }
 
       document.getElementById("kpi-total").textContent = total;
       document.getElementById("kpi-split").textContent = `${avarias} avarias • ${faltantes} faltantes`;
@@ -1810,30 +2091,34 @@ Dimas GWM`;
       document.getElementById("kpi-valor-total").textContent = `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
       document.getElementById("kpi-aguardando").textContent = `${aguardando} aguardando GWM`;
       document.getElementById("kpi-concluidos").textContent = concluidos;
+      document.getElementById("kpi-leadtime").textContent = concluidos > 0 ? `média ${mediaDias}d p/ liberar` : "nenhum concluído";
 
       const listaEl = document.getElementById("lista-pendencias");
       const ativos = dados.filter(d => d.status !== "Concluído").slice(0, 8);
       if (!ativos.length) {
         listaEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">Nenhuma pendência ativa na nuvem no momento.</div>`;
       } else {
-        listaEl.innerHTML = ativos.map(a => `
-          <div class="py-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span class="text-xs font-bold text-slate-900">${a.modelo}</span>
-              <span class="text-xs font-mono text-cyan-700 font-bold ml-1.5">#${a.chassi.slice(-6)}</span>
-              <span class="text-[11px] ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${a.tipo}</span>
-              ${a.okFunilaria ? `<span class="text-[11px] ml-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">✅ OK Funilaria</span>` : ""}
-              <p class="text-xs text-slate-500 mt-0.5">${a.descricao}</p>
+        listaEl.innerHTML = ativos.map(a => {
+          const dias = calcDiasAberto(a.data, null);
+          return `
+            <div class="py-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-bold text-slate-900">${a.modelo}</span>
+                <span class="text-xs font-mono text-cyan-700 font-bold ml-1.5">#${a.chassi.slice(-6)}</span>
+                <span class="text-[11px] ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${a.tipo}</span>
+                <span class="text-[11px] ml-1.5 px-2 py-0.5 rounded-full ${dias >= 2 ? "bg-rose-100 text-rose-700 font-bold" : "bg-slate-100 text-slate-600"}">${dias}d em aberto</span>
+                ${a.okFunilaria ? `<span class="text-[11px] ml-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">✅ OK Funilaria</span>` : ""}
+                <p class="text-xs text-slate-500 mt-0.5">${a.descricao}</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                ${a.drive ? `<a href="${a.drive}" target="_blank" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">📁 Drive 5TB</a>` : ""}
+                <button onclick="abrirModalDossie(${a.id})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">📷 Dossiê (${(a.anexos||[]).length})</button>
+                <button onclick="cobrarRetornoGWM(${a.id})" class="bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">⏳ Cobrar GWM</button>
+                ${!a.okFunilaria ? `<button onclick="darOKFunilaria(${a.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">👍 Dar OK</button>` : ""}
+              </div>
             </div>
-            <div class="flex flex-wrap items-center gap-1.5">
-              ${a.drive ? `<a href="${a.drive}" target="_blank" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">📁 Drive 5TB</a>` : ""}
-              <button onclick="abrirModalDossie(${a.id})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">📷 Dossiê (${(a.anexos||[]).length})</button>
-              <button onclick="avisarWhatsAppLinha(${a.id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">💬 WhatsApp</button>
-              ${!a.okFunilaria ? `<button onclick="darOKFunilaria(${a.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">👍 Dar OK</button>` : ""}
-              <button onclick="reenviarEmail(${a.id}, 'web')" class="bg-dimas-cyan hover:bg-cyan-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">🌐 Outlook Web</button>
-            </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       }
 
       if (charts.tipo) charts.tipo.destroy();
