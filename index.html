@@ -164,7 +164,7 @@
     </div>
   </header>
 
-  <!-- BANNER DE ALERTA CRÍTICO DE SLA 72H (FUNCIONALIDADE 3) -->
+  <!-- BANNER DE ALERTA CRÍTICO DE SLA 72H -->
   <div id="sla-critical-banner" class="hidden bg-gradient-to-r from-rose-700 to-red-600 text-white px-6 py-2.5 text-xs font-semibold flex flex-wrap items-center justify-between gap-2 shadow">
     <div class="flex items-center gap-2">
       <span class="text-base">🚨</span>
@@ -189,7 +189,7 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="text-xl font-bold text-slate-900">Painel Executivo — Dimas GWM (Tempo Real)</h2>
-          <p class="text-sm text-slate-500">Fotos no Google Drive 5TB • Leitura Fiscal CT-e/NF-e com IA • Controle de SLA & Ressarcimento</p>
+          <p class="text-sm text-slate-500">Linha GWM Brasil 2026/2027 Atualizada • Google Drive 5TB • IA Gemini 3.8 Flash</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="gerarBoletimExecutivo()" class="bg-dimas-navy hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition">
@@ -281,7 +281,7 @@
       </div>
     </section>
 
-    <!-- ABA 2: NOVO REGISTRO & ARMAZÉM DRIVE + IA (FOTOS + PDF CT-e/NF-e) -->
+    <!-- ABA 2: NOVO REGISTRO & ARMAZÉM DRIVE + IA -->
     <section id="tab-novo" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 card-shadow space-y-5">
@@ -345,7 +345,7 @@
               <input type="date" id="inp-data" oninput="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Modelo / Versão GWM *</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Modelo / Versão GWM (Catálogo Oficial) *</label>
               <select id="inp-modelo" onchange="updateLivePreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#00B4D8] focus:outline-none bg-white"></select>
             </div>
           </div>
@@ -523,9 +523,9 @@
         <div class="space-y-1 max-w-xl">
           <div class="flex items-center gap-2">
             <span class="text-lg">✨</span>
-            <h2 class="text-base font-extrabold">Inteligência Artificial (Google Gemini)</h2>
+            <h2 class="text-base font-extrabold">Inteligência Artificial (Google Gemini 3.8 Flash)</h2>
           </div>
-          <p class="text-xs text-slate-300">Cole sua chave gratuita do Google AI Studio (<code class="text-cyan-300">aistudio.google.com/apikey</code>) para ativar a leitura automática de fotos, PDFs de CT-e/NF-e, modelos GWM e redação técnica.</p>
+          <p class="text-xs text-slate-300">Cole sua chave gratuita do Google AI Studio (<code class="text-cyan-300">aistudio.google.com/apikey</code>) para ativar a leitura automática de fotos, PDFs de CT-e/NF-e, modelos GWM 2026/2027 e redação técnica.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 flex-1 max-w-md">
           <input type="password" id="inp-gemini-key" placeholder="Cole sua chave..." class="flex-1 rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2.5 text-xs font-mono text-white focus:border-purple-400 focus:outline-none" />
@@ -702,16 +702,28 @@
     const CC_BASE = ["adalto.paes@dimasgwm.com.br", "jose.gularte@dimasgwm.com.br", "marco.wasconcellos@dimas.com.br"];
     const EMAIL_JEAN = "jean.mingarini@dimas.com.br";
 
+    // CATÁLOGO OFICIAL GWM BRASIL (2026 / 2027)
     const MODELOS_GWM = [
+      "Haval H6 HEV ONE",
       "Haval H6 HEV2",
       "Haval H6 PHEV19",
-      "Haval H6 PHEV34",
+      "Haval H6 PHEV35",
       "Haval H6 GT",
-      "Ora 03 Skin",
-      "Ora 03 GT",
-      "Tank 300",
+      "Haval H7 PHEV",
       "Haval H9",
-      "Poer",
+      "Haval H9 Selection",
+      "Ora 03 Skin",
+      "Ora 03 BEV58",
+      "Ora 03 GT",
+      "Ora 5",
+      "Tank 300 PHEV",
+      "Tank 300 TerraForce",
+      "Tank 400 Hi4-T",
+      "Poer P30 Exclusive",
+      "Poer P30 Trail",
+      "Poer P30 Pro",
+      "Wey 07",
+      "Wey 07 Dark Edition",
       "Outro Modelo GWM"
     ];
 
@@ -732,7 +744,12 @@
     let modalRegistroId = null;
     let charts = {};
 
-    document.getElementById("inp-modelo").innerHTML = MODELOS_GWM.map(m => `<option value="${m}">${m}</option>`).join("");
+    function renderSelectModelos(selectedVal = "") {
+      return MODELOS_GWM.map(m => `<option value="${m}" ${selectedVal === m ? "selected" : ""}>${m}</option>`).join("") +
+        (selectedVal && !MODELOS_GWM.includes(selectedVal) ? `<option value="${selectedVal}" selected>${selectedVal}</option>` : "");
+    }
+
+    document.getElementById("inp-modelo").innerHTML = renderSelectModelos("Haval H6 HEV2");
     document.getElementById("inp-data").value = new Date().toISOString().split("T")[0];
 
     // CONFIGURAÇÃO IA GEMINI NO FIRESTORE
@@ -803,7 +820,7 @@
       await deleteDoc(doc(db, "usuarios", String(id)));
     }
 
-    // ALERTA PROATIVO DE SLA 72H (FUNCIONALIDADE 3)
+    // ALERTA PROATIVO DE SLA 72H
     function verificarAlertasSLA() {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -846,7 +863,7 @@
       return { folderUrl: result.folderUrl, files: result.files };
     }
 
-    // INTELIGÊNCIA ARTIFICIAL GEMINI: LÊ IMAGENS + PDFs (CT-e e NF-e) (FUNCIONALIDADE 1)
+    // INTELIGÊNCIA ARTIFICIAL GEMINI 3.8 FLASH (FOTOS + PDFs CT-e/NF-e)
     async function chamarGemini(promptTexto, anexosList = []) {
       if (!geminiApiKey) {
         switchTab("usuarios");
@@ -879,6 +896,8 @@
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
+    const LISTA_MODELOS_PROMPT = MODELOS_GWM.join(", ");
+
     window.analisarArquivosComIA = async function() {
       if (!anexosTemp.length) {
         alert("Anexe primeiro as fotos do veículo e/ou os PDFs de CT-e e NF-e na caixa azul acima!");
@@ -893,7 +912,7 @@
       try {
         const prompt = `Você é um auditor e vistoriador técnico de veículos 0km da concessionária Dimas GWM. Analise TODAS as imagens e PDFs anexados (fotos do carro, etiqueta VIN, CT-e e NF-e) e responda APENAS em JSON válido (sem markdown) neste formato exato:
 {
-  "modelo": "um destes exatos: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM",
+  "modelo": "um destes exatos: ${LISTA_MODELOS_PROMPT}",
   "chassi": "número VIN completo de 17 caracteres extraído da NF-e, CT-e ou etiqueta, ou vazio",
   "transportadora": "nome da transportadora/cegonha extraído do CT-e/NF-e ou vazio",
   "docFiscal": "número da NF-e e/ou CT-e encontrados (ex: NF 12345 / CT-e 678) ou vazio",
@@ -926,7 +945,6 @@
           document.getElementById("inp-descricao").value = parsed.descricao;
         }
 
-        // Auditoria de Ressalva no CT-e
         if (parsed.temRessalvaCte === "nao") {
           alertBox.className = "rounded-xl p-3 text-xs font-semibold border bg-rose-50 border-rose-300 text-rose-800";
           alertBox.innerHTML = `⚠️ <strong>Auditoria CT-e (IA):</strong> ${parsed.auditoriaCte || "Nenhuma ressalva de avaria identificada no CT-e anexado! Confira se o motorista assinou a ressalva no verso/canhoto."}`;
@@ -969,7 +987,7 @@
           const item = loteTemp[i];
           if (!item.anexos || !item.anexos.length) continue;
           const prompt = `Analise as fotos e PDFs (CT-e/NF-e) deste veículo 0km GWM e responda APENAS em JSON válido (sem markdown):
-{"modelo": "um destes: Haval H6 HEV2, Haval H6 PHEV19, Haval H6 PHEV34, Haval H6 GT, Ora 03 Skin, Ora 03 GT, Tank 300, Haval H9, Poer, Outro Modelo GWM", "chassi": "VIN de 17 dígitos se visível ou vazio", "transportadora": "transportadora do CT-e/NF-e ou vazio", "docFiscal": "número NF-e/CT-e ou vazio", "descricao": "descrição técnica curta da avaria ou item faltante"}`;
+{"modelo": "um destes exatos: ${LISTA_MODELOS_PROMPT}", "chassi": "VIN de 17 dígitos se visível ou vazio", "transportadora": "transportadora do CT-e/NF-e ou vazio", "docFiscal": "número NF-e/CT-e ou vazio", "descricao": "descrição técnica curta da avaria ou item faltante"}`;
           const raw = await chamarGemini(prompt, item.anexos);
           const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
           if (parsed.modelo && MODELOS_GWM.includes(parsed.modelo)) item.modelo = parsed.modelo;
@@ -989,14 +1007,25 @@
 
     function detectarModeloPorTexto(texto) {
       const t = (texto || "").toLowerCase();
+      if (t.includes("wey") && t.includes("dark")) return "Wey 07 Dark Edition";
+      if (t.includes("wey")) return "Wey 07";
+      if (t.includes("tank") && t.includes("400")) return "Tank 400 Hi4-T";
+      if (t.includes("tank") && t.includes("terra")) return "Tank 300 TerraForce";
+      if (t.includes("tank")) return "Tank 300 PHEV";
+      if (t.includes("poer") && t.includes("trail")) return "Poer P30 Trail";
+      if (t.includes("poer") && t.includes("pro")) return "Poer P30 Pro";
+      if (t.includes("poer")) return "Poer P30 Exclusive";
+      if (t.includes("ora") && t.includes("5")) return "Ora 5";
       if (t.includes("ora") && t.includes("gt")) return "Ora 03 GT";
+      if (t.includes("ora") && t.includes("bev")) return "Ora 03 BEV58";
       if (t.includes("ora") || t.includes("skin")) return "Ora 03 Skin";
-      if (t.includes("gt")) return "Haval H6 GT";
-      if (t.includes("phev34") || t.includes("phev 34")) return "Haval H6 PHEV34";
-      if (t.includes("phev19") || t.includes("phev 19") || t.includes("phev")) return "Haval H6 PHEV19";
-      if (t.includes("tank")) return "Tank 300";
+      if (t.includes("h9") && t.includes("selection")) return "Haval H9 Selection";
       if (t.includes("h9")) return "Haval H9";
-      if (t.includes("poer")) return "Poer";
+      if (t.includes("h7")) return "Haval H7 PHEV";
+      if (t.includes("gt")) return "Haval H6 GT";
+      if (t.includes("phev35") || t.includes("phev 35") || t.includes("phev34")) return "Haval H6 PHEV35";
+      if (t.includes("phev19") || t.includes("phev 19") || t.includes("phev")) return "Haval H6 PHEV19";
+      if (t.includes("one")) return "Haval H6 HEV ONE";
       return "Haval H6 HEV2";
     }
 
@@ -1170,7 +1199,7 @@ Dimas GWM`;
       return { to: EMAIL_TO, cc: getCCList(obj.tipo).join(", "), assunto, corpo, pasta, ult6 };
     }
 
-    // E-MAIL DE COBRANÇA / FOLLOW-UP AUTOMÁTICO GWM (FUNCIONALIDADE 3)
+    // E-MAIL DE COBRANÇA / FOLLOW-UP AUTOMÁTICO GWM
     window.cobrarRetornoGWM = async function(id) {
       const item = registros.find(r => r.id === id);
       if (!item) return;
@@ -1555,7 +1584,7 @@ Dimas GWM`;
       win.document.close();
     };
 
-    // RELATÓRIO GERENCIAL MENSAL / EXECUTIVO PARA DIRETORIA E MONTADORA (FUNCIONALIDADE 4)
+    // RELATÓRIO GERENCIAL MENSAL / EXECUTIVO PARA DIRETORIA E MONTADORA
     window.gerarBoletimExecutivo = function() {
       const agora = new Date();
       const dados = registros.filter(r => {
@@ -1577,7 +1606,6 @@ Dimas GWM`;
         .reduce((s, x) => s + (Number(x.valorOrcamento) || 0), 0);
       const valorPendente = valorOrcado - valorRessarcido;
 
-      // Ranking por Transportadora
       const transpMap = {};
       dados.forEach(d => {
         const t = (d.transportadora || "Não informada").trim();
@@ -1586,7 +1614,6 @@ Dimas GWM`;
       const transpRows = Object.entries(transpMap).sort((a, b) => b[1] - a[1])
         .map(([nome, qtd]) => `<tr><td>${nome}</td><td><strong>${qtd}</strong></td><td>${total ? ((qtd / total) * 100).toFixed(0) : 0}%</td></tr>`).join("");
 
-      // Ranking por Modelo
       const modMap = {};
       dados.forEach(d => { modMap[d.modelo] = (modMap[d.modelo] || 0) + 1; });
       const modRows = Object.entries(modMap).sort((a, b) => b[1] - a[1])
@@ -1760,7 +1787,7 @@ Dimas GWM`;
           <div>
             <label class="block text-[10px] font-bold uppercase text-cyan-800 mb-1">Modelo do Veículo GWM:</label>
             <select onchange="loteTemp[${i}].modelo=this.value" class="w-full rounded-lg border-2 border-cyan-400 px-2.5 py-1.5 text-xs bg-white font-bold text-slate-900">
-              ${MODELOS_GWM.map(m => `<option value="${m}" ${item.modelo === m ? "selected" : ""}>${m}</option>`).join("")}
+              ${renderSelectModelos(item.modelo)}
             </select>
           </div>
 
@@ -1877,7 +1904,7 @@ Dimas GWM`;
             <td class="p-3 whitespace-nowrap">${badgeTipo}</td>
             <td class="p-3 whitespace-nowrap">
               <select onchange="atualizarCampo(${r.id}, 'modelo', this.value)" class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-bold text-slate-800 bg-white">
-                ${MODELOS_GWM.map(m => `<option value="${m}" ${r.modelo === m ? "selected" : ""}>${m}</option>`).join("")}
+                ${renderSelectModelos(r.modelo)}
               </select>
             </td>
             <td class="p-3 whitespace-nowrap">
@@ -2077,7 +2104,6 @@ Dimas GWM`;
       const concluidos = concluidosList.length;
       const valorTotal = dados.reduce((acc, cur) => acc + (Number(cur.valorOrcamento) || 0), 0);
 
-      // Lead time médio dos concluídos
       let mediaDias = 0;
       if (concluidos > 0) {
         const somaDias = concluidosList.reduce((acc, cur) => acc + calcDiasAberto(cur.data, cur.dataConclusao || null), 0);
