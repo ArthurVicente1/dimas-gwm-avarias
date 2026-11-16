@@ -427,11 +427,11 @@
           <div id="upload-status-novo" class="hidden text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 p-3 rounded-xl text-center"></div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <button type="button" id="btn-save-web" onclick="salvarEGerarEmail('web', false)" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3.5 px-3 rounded-xl shadow-lg transition text-xs">
-              🌐 Salvar & Outlook Web
+            <button type="button" id="btn-save-eml" onclick="salvarEGerarEmail('eml', false)" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold py-3.5 px-3 rounded-xl shadow-lg transition text-xs">
+              📧 Salvar & Rascunho .EML (c/ Anexos)
             </button>
-            <button type="button" id="btn-save-app" onclick="salvarEGerarEmail('app', false)" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-3.5 px-3 rounded-xl shadow-lg transition text-xs">
-              ✉️ Salvar & App E-mail
+            <button type="button" id="btn-save-web" onclick="salvarEGerarEmail('web', false)" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-3.5 px-3 rounded-xl shadow-lg transition text-xs">
+              🌐 Salvar & Outlook Web
             </button>
             <button type="button" id="btn-save-next" onclick="salvarEGerarEmail('none', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-3 rounded-xl shadow-lg transition text-xs">
               ➕ Salvar & Próximo Carro
@@ -463,8 +463,8 @@
             <button type="button" onclick="copiarCorpoEmail()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-2 rounded-xl text-xs transition">
               📋 Copiar
             </button>
-            <button type="button" onclick="abrirOutlookAtual('app')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition">
-              ✉️ App
+            <button type="button" onclick="abrirOutlookAtual('eml')" class="bg-dimas-navy hover:bg-slate-800 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition">
+              📧 .EML
             </button>
             <button type="button" onclick="abrirOutlookAtual('web')" class="bg-dimas-cyan hover:bg-cyan-600 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition">
               🌐 Web
@@ -597,11 +597,11 @@
           <p id="mod-subtitulo" class="text-xs text-slate-500"></p>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-          <button onclick="enviarEmailModal('web')" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold text-xs px-3 py-2 rounded-xl shadow transition">
-            ✉️ Enviar E-mail (Outlook)
+          <button id="mod-btn-eml" onclick="baixarEmlModal()" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-95 text-white font-bold text-xs px-3 py-2 rounded-xl shadow transition">
+            📧 Rascunho .EML (c/ Anexos)
           </button>
-          <button id="mod-btn-zip" onclick="baixarZipModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
-            📦 Baixar ZIP
+          <button onclick="enviarEmailModal('web')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
+            🌐 Outlook Web
           </button>
           <a id="mod-btn-drive" href="#" target="_blank" class="hidden bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
             📂 Drive 5TB
@@ -1279,53 +1279,28 @@ Dimas GWM`;
       dispararEmail(r, modo);
     };
 
-    window.baixarZipModal = async function() {
+    window.baixarEmlModal = async function() {
       const r = registros.find(x => x.id === modalRegistroId);
       if (!r) return;
-      const anexos = r.anexos || [];
-      if (!anexos.length) return alert("Sem arquivos neste dossiê.");
-
-      const btn = document.getElementById("mod-btn-zip");
+      const btn = document.getElementById("mod-btn-eml");
       btn.disabled = true;
-      btn.textContent = "⏳ Gerando ZIP...";
-
+      btn.textContent = "⏳ Gerando .EML...";
       try {
-        const zip = new JSZip();
-        let adicionados = 0;
-
-        for (let i = 0; i < anexos.length; i++) {
-          const a = anexos[i];
-          const nomeArq = a.nome || `arquivo_${i + 1}.jpg`;
-          if (a.dataUrl && a.dataUrl.includes(",")) {
-            zip.file(nomeArq, a.dataUrl.split(",")[1], { base64: true });
-            adicionados++;
-          } else {
-            const thumbUrl = getDriveThumbUrl(a);
-            try {
-              const resp = await fetch(thumbUrl);
-              if (resp.ok) {
-                const blob = await resp.blob();
-                zip.file(nomeArq, blob);
-                adicionados++;
-              }
-            } catch (_) {}
-          }
-        }
-
-        if (adicionados === 0) {
-          if (r.drive) window.open(r.drive, "_blank");
-          return;
-        }
-
-        const content = await zip.generateAsync({ type: "blob" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(content);
-        link.download = `${r.data || "2026"}_${r.modelo.replace(/\s+/g, "")}_${r.chassi.slice(-6)}.zip`;
-        link.click();
+        const qtd = await baixarRascunhoEML(r, r.anexos || []);
+        registrarLog(r, `Rascunho .EML baixado (${qtd} anexo(s))`);
+        await salvarRegistroNuvem(r);
       } finally {
         btn.disabled = false;
-        btn.textContent = "📦 Baixar ZIP";
+        btn.textContent = "📧 Rascunho .EML (c/ Anexos)";
       }
+    };
+
+    window.baixarEmlLinha = async function(id) {
+      const r = registros.find(x => x.id === id);
+      if (!r) return;
+      const qtd = await baixarRascunhoEML(r, r.anexos || []);
+      registrarLog(r, `Rascunho .EML baixado (${qtd} anexo(s))`);
+      await salvarRegistroNuvem(r);
     };
 
     window.updateLivePreview = function() {
@@ -1372,6 +1347,112 @@ Dimas GWM`;
       alert("Ressalva copiada!");
     };
 
+
+    // GERADOR DE RASCUNHO .EML (RFC 822) COM ANEXOS SOLTOS PARA OUTLOOK DESKTOP (X-Unsent: 1)
+    function encodeMimeWordUTF8(str) {
+      const bytes = new TextEncoder().encode(str || "");
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      return "=?UTF-8?B?" + btoa(binary) + "?=";
+    }
+
+    function arrayBufferToBase64Chunks(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      const b64 = btoa(binary);
+      return b64.match(/.{1,76}/g)?.join("\r\n") || "";
+    }
+
+    function base64ToChunks(b64) {
+      const clean = (b64 || "").replace(/\s+/g, "");
+      return clean.match(/.{1,76}/g)?.join("\r\n") || "";
+    }
+
+    async function baixarRascunhoEML(obj, anexosOrigem = []) {
+      const mail = montarDadosEmail(obj);
+      const boundary = "----=_NextPart_DimasGWM_" + Date.now();
+
+      const textBytes = new TextEncoder().encode(mail.corpo);
+      const corpoBase64 = arrayBufferToBase64Chunks(textBytes.buffer);
+
+      let eml = [
+        "X-Unsent: 1",
+        `To: ${mail.to}`,
+        `Cc: ${mail.cc}`,
+        `Subject: ${encodeMimeWordUTF8(mail.assunto)}`,
+        "MIME-Version: 1.0",
+        `Content-Type: multipart/mixed; boundary="${boundary}"`,
+        "",
+        `--${boundary}`,
+        'Content-Type: text/plain; charset="UTF-8"',
+        "Content-Transfer-Encoding: base64",
+        "",
+        corpoBase64,
+        ""
+      ].join("\r\n");
+
+      let anexosIncluidos = 0;
+      for (let i = 0; i < anexosOrigem.length; i++) {
+        const a = anexosOrigem[i];
+        const nomeArq = (a.nome || `evidencia_${i + 1}.jpg`).replace(/"/g, "");
+        const mime = a.tipo || (nomeArq.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+        let b64Chunks = "";
+
+        if (a.dataUrl && a.dataUrl.includes(",")) {
+          b64Chunks = base64ToChunks(a.dataUrl.split(",")[1]);
+        } else {
+          // Tenta buscar do Drive caso o registro tenha sido carregado da nuvem
+          const rawUrl = a.url || a.viewUrl || "";
+          const match = rawUrl.match(/[-\w]{25,}/);
+          const fetchUrls = match
+            ? [`https://drive.google.com/uc?export=download&id=${match[0]}`, `https://drive.google.com/thumbnail?id=${match[0]}&sz=w1600`]
+            : [rawUrl];
+
+          for (const u of fetchUrls) {
+            if (!u) continue;
+            try {
+              const resp = await fetch(u);
+              if (resp.ok) {
+                const buf = await resp.arrayBuffer();
+                if (buf.byteLength > 200) {
+                  b64Chunks = arrayBufferToBase64Chunks(buf);
+                  break;
+                }
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (b64Chunks) {
+          eml += [
+            `--${boundary}`,
+            `Content-Type: ${mime}; name="${encodeMimeWordUTF8(nomeArq)}"`,
+            "Content-Transfer-Encoding: base64",
+            `Content-Disposition: attachment; filename="${encodeMimeWordUTF8(nomeArq)}"`,
+            "",
+            b64Chunks,
+            ""
+          ].join("\r\n");
+          anexosIncluidos++;
+        }
+      }
+
+      eml += `--${boundary}--\r\n`;
+
+      const blob = new Blob([eml], { type: "message/rfc822" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      const prefixo = obj.tipo === "Avaria" ? "AVARIA" : "ITEM_FALTANTE";
+      link.download = `${prefixo}_${mail.ult6}.eml`;
+      link.click();
+
+      return anexosIncluidos;
+    }
+
     function dispararEmail(obj, modo = "app") {
       const mail = montarDadosEmail(obj);
       if (modo === "web") {
@@ -1408,7 +1489,11 @@ Dimas GWM`;
         cte: document.getElementById("chk-cte").checked,
         nfe: document.getElementById("chk-nfe").checked
       };
-      dispararEmail(obj, modo);
+      if (modo === "eml") {
+        baixarRascunhoEML(obj, anexosTemp);
+      } else {
+        dispararEmail(obj, modo);
+      }
     };
 
     // LEITURA DE ARQUIVOS & SCANNER DE DOCUMENTO PARA ANDROID
@@ -1484,13 +1569,13 @@ Dimas GWM`;
         return;
       }
 
-      const btnApp = document.getElementById("btn-save-app");
+      const btnEml = document.getElementById("btn-save-eml");
       const btnWeb = document.getElementById("btn-save-web");
       const btnNext = document.getElementById("btn-save-next");
       const statusBox = document.getElementById("upload-status-novo");
-      btnApp.disabled = true;
-      btnWeb.disabled = true;
-      btnNext.disabled = true;
+      if (btnEml) btnEml.disabled = true;
+      if (btnWeb) btnWeb.disabled = true;
+      if (btnNext) btnNext.disabled = true;
       statusBox.classList.remove("hidden");
 
       try {
@@ -1539,7 +1624,10 @@ Dimas GWM`;
         registrarLog(novo, `Registrado (${novo.modelo})`);
 
         await salvarRegistroNuvem(novo);
-        if (modo === "web" || modo === "app") {
+        if (modo === "eml") {
+          statusBox.textContent = "⏳ Gerando rascunho .EML com todos os anexos...";
+          await baixarRascunhoEML(novo, anexosTemp);
+        } else if (modo === "web" || modo === "app") {
           dispararEmail(novo, modo);
         }
 
@@ -1567,9 +1655,9 @@ Dimas GWM`;
         alert("Erro ao salvar: " + e.message);
         statusBox.classList.add("hidden");
       } finally {
-        btnApp.disabled = false;
-        btnWeb.disabled = false;
-        btnNext.disabled = false;
+        if (btnEml) btnEml.disabled = false;
+        if (btnWeb) btnWeb.disabled = false;
+        if (btnNext) btnNext.disabled = false;
       }
     };
 
@@ -2077,7 +2165,7 @@ Dimas GWM`;
               </select>
             </td>
             <td class="p-3 whitespace-nowrap text-center space-x-1">
-              <button onclick="reenviarEmail(${r.id}, 'web')" title="Enviar E-mail no Outlook" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-90 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm">✉️ E-mail</button>
+              <button onclick="baixarEmlLinha(${r.id})" title="Baixar Rascunho .EML c/ Anexos para Outlook" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-90 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm">📧 .EML</button>
               <button onclick="cobrarRetornoGWM(${r.id})" title="Cobrar Retorno GWM" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-lg font-bold">⏳</button>
               <button onclick="avisarWhatsAppLinha(${r.id})" title="WhatsApp" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-bold">💬</button>
               <button onclick="excluirRegistro(${r.id})" title="Excluir" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-lg font-bold">🗑️</button>
