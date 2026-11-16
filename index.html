@@ -12,6 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; color: #0F172A; -webkit-tap-highlight-color: transparent; }
@@ -1757,21 +1758,86 @@ Dimas GWM`;
       alert("Salvo!");
     };
 
-    async function urlParaBase64Seguro(url) {
-      if (!url) return "";
-      if (url.startsWith("data:")) return url;
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) return "";
-        const blob = await resp.blob();
-        return await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result || "");
-          reader.readAsDataURL(blob);
-        });
-      } catch (_) {
-        return "";
+    function extrairDriveFileId(anexo) {
+      if (!anexo) return "";
+      if (anexo.id) return anexo.id;
+      const rawUrl = anexo.url || anexo.viewUrl || "";
+      const match = rawUrl.match(/[-\w]{25,}/);
+      return match ? match[0] : "";
+    }
+
+    async function buscarArquivosDoDriveViaScript(anexosList) {
+      const idsParaBuscar = [];
+      anexosList.forEach(a => {
+        if (!a.dataUrl) {
+          const fid = extrairDriveFileId(a);
+          if (fid) idsParaBuscar.push(fid);
+        }
+      });
+
+      const mapaDrive = {};
+      if (idsParaBuscar.length > 0) {
+        try {
+          const resp = await fetch(DRIVE_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getFiles", fileIds: idsParaBuscar })
+          });
+          const resJson = await resp.json();
+          if (resJson && resJson.ok && Array.isArray(resJson.files)) {
+            resJson.files.forEach(f => {
+              if (f.id && f.dataUrl) mapaDrive[f.id] = f;
+            });
+          }
+        } catch (err) {
+          console.warn("Falha ao buscar via Apps Script, usando fallback:", err);
+        }
       }
+
+      const completos = [];
+      for (const a of anexosList) {
+        if (a.dataUrl) {
+          completos.push({ nome: a.nome || "arquivo", tipo: a.tipo || "", dataUrl: a.dataUrl });
+          continue;
+        }
+        const fid = extrairDriveFileId(a);
+        if (fid && mapaDrive[fid]) {
+          completos.push({
+            nome: a.nome || mapaDrive[fid].name || "arquivo",
+            tipo: a.tipo || mapaDrive[fid].mimeType || "",
+            dataUrl: mapaDrive[fid].dataUrl
+          });
+          continue;
+        }
+        // Fallback direto para imagem caso o script ainda não tenha sido atualizado
+        const thumbUrl = getDriveThumbUrl(a);
+        if (thumbUrl) {
+          try {
+            const rImg = await fetch(thumbUrl);
+            if (rImg.ok) {
+              const blob = await rImg.blob();
+              const dUrl = await new Promise(res => {
+                const rd = new FileReader();
+                rd.onloadend = () => res(rd.result || "");
+                rd.readAsDataURL(blob);
+              });
+              if (dUrl) {
+                completos.push({ nome: a.nome || "foto.jpg", tipo: "image/jpeg", dataUrl: dUrl });
+              }
+            }
+          } catch (_) {}
+        }
+      }
+      return completos;
+    }
+
+    function base64DataUrlToUint8Array(dataUrl) {
+      const b64 = dataUrl.split(",")[1];
+      const bin = atob(b64);
+      const len = bin.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
     }
 
     window.baixarTermoPDF = async function(idParam = null) {
@@ -1782,17 +1848,19 @@ Dimas GWM`;
       const btnModal = document.getElementById("mod-btn-pdf");
       if (btnModal && !idParam) {
         btnModal.disabled = true;
-        btnModal.textContent = "⏳ Gerando...";
+        btnModal.textContent = "⏳ Montando PDF Completo...";
       }
 
       try {
         const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
-        const rawImgs = (r.anexos || []).filter(a => (a.tipo || "").startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(a.nome || "")).slice(0, 4);
-        const imgsBase64 = [];
-        for (const imgObj of rawImgs) {
-          const b64 = await urlParaBase64Seguro(getDriveThumbUrl(imgObj));
-          if (b64) imgsBase64.push(b64);
-        }
+        const arquivosCompletos = await buscarArquivosDoDriveViaScript(r.anexos || []);
+
+        const fotos = arquivosCompletos.filter(a =>
+          (a.tipo || "").startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(a.nome || "")
+        );
+        const pdfsAnexos = arquivosCompletos.filter(a =>
+          (a.tipo || "") === "application/pdf" || (a.nome || "").toLowerCase().endsWith(".pdf")
+        );
 
         const container = document.createElement("div");
         container.style.width = "760px";
@@ -1804,7 +1872,7 @@ Dimas GWM`;
         container.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; background:#0D1C26; color:#ffffff; padding:14px 20px; border-radius:8px;">
             <div style="font-size:15px;"><strong>DIMAS 50 ANOS</strong> &nbsp;|&nbsp; <strong>GWM</strong> Hello, tomorrow.</div>
-            <div style="font-size:12px;">Termo de Ocorrência 0km</div>
+            <div style="font-size:12px;">Dossiê de Ocorrência 0km</div>
           </div>
 
           <div style="font-size:15px; font-weight:bold; margin:18px 0 8px; border-bottom:2px solid #0D1C26; padding-bottom:4px;">1. Dados do Veículo</div>
@@ -1853,29 +1921,58 @@ Dimas GWM`;
             </tr>
           </table>
 
-          ${imgsBase64.length ? `
-            <div style="font-size:15px; font-weight:bold; margin:14px 0 8px; border-bottom:2px solid #0D1C26; padding-bottom:4px;">2. Evidências Fotográficas</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              ${imgsBase64.map(src => `<img src="${src}" style="width:100%; height:170px; object-fit:cover; border:1px solid #cbd5e1; border-radius:6px;" />`).join("")}
-            </div>
-          ` : ""}
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:48px; font-size:11px; text-align:center;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:26px; margin-bottom:20px; font-size:11px; text-align:center;">
             <div style="border-top:1px solid #333; padding-top:6px;">Logística / Pátio<br/>Dimas GWM</div>
             <div style="border-top:1px solid #333; padding-top:6px;">Funilaria / Transportadora<br/>Conferência</div>
           </div>
+
+          ${fotos.length ? `
+            <div style="font-size:15px; font-weight:bold; margin:16px 0 10px; border-bottom:2px solid #0D1C26; padding-bottom:4px;">2. Evidências Fotográficas & Digitalizações (${fotos.length})</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              ${fotos.map(f => `
+                <div style="border:1px solid #cbd5e1; border-radius:6px; padding:6px; background:#f8fafc; page-break-inside:avoid;">
+                  <img src="${f.dataUrl}" style="width:100%; height:220px; object-fit:contain; background:#ffffff; border-radius:4px;" />
+                  <div style="font-size:10px; color:#475569; margin-top:4px; text-align:center; word-break:break-all;">${f.nome || ""}</div>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
         `;
 
-        const chassiLimpo = (r.chassi || "SEM_CHASSI").replace(/[^A-Z0-9]/gi, "").toUpperCase();
         const opt = {
           margin: 8,
-          filename: `Dimas_GWM_${chassiLimpo}.pdf`,
-          image: { type: "jpeg", quality: 0.92 },
+          image: { type: "jpeg", quality: 0.90 },
           html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
         };
 
-        await html2pdf().set(opt).from(container).save();
+        // Gera o PDF base (Capa + Todas as Fotos) em ArrayBuffer
+        const basePdfBuffer = await html2pdf().set(opt).from(container).outputPdf("arraybuffer");
+
+        // Mescla com pdf-lib os PDFs originais de CT-e e NF-e anexados
+        const { PDFDocument } = PDFLib;
+        const mergedPdf = await PDFDocument.load(basePdfBuffer);
+
+        for (const pdfAnexo of pdfsAnexos) {
+          if (!pdfAnexo.dataUrl || !pdfAnexo.dataUrl.includes(",")) continue;
+          try {
+            const anexoBytes = base64DataUrlToUint8Array(pdfAnexo.dataUrl);
+            const anexoDoc = await PDFDocument.load(anexoBytes);
+            const copiedPages = await mergedPdf.copyPages(anexoDoc, anexoDoc.getPageIndices());
+            copiedPages.forEach(page => mergedPdf.addPage(page));
+          } catch (errPdf) {
+            console.warn("Não foi possível mesclar PDF anexo:", pdfAnexo.nome, errPdf);
+          }
+        }
+
+        const finalPdfBytes = await mergedPdf.save();
+        const blob = new Blob([finalPdfBytes], { type: "application/pdf" });
+        const link = document.createElement("a");
+        const chassiLimpo = (r.chassi || "SEM_CHASSI").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        link.href = URL.createObjectURL(blob);
+        link.download = `Dimas_GWM_${chassiLimpo}.pdf`;
+        link.click();
       } finally {
         if (btnModal && !idParam) {
           btnModal.disabled = false;
