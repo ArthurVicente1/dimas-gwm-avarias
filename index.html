@@ -1200,45 +1200,32 @@
     function montarDadosEmail(obj) {
       const chassi = (obj.chassi || "000000").toUpperCase();
       const ult6 = chassi.slice(-6);
-      const dataBR = obj.data ? obj.data.split("-").reverse().join("/") : "";
       const isAvaria = obj.tipo === "Avaria";
-      const tagAssunto = isAvaria ? "[AVARIA TRANSPORTE 0KM]" : "[ITEM FALTANTE 0KM]";
-      const assunto = `${tagAssunto} Dimas GWM - ${obj.modelo} - Chassi: ${ult6}`;
+      const horaAtual = new Date().getHours();
+      const saudacao = horaAtual < 12 ? "Bom dia," : (horaAtual < 18 ? "Boa tarde," : "Boa noite,");
+
+      const tituloAssunto = isAvaria ? "PROCESSO DE AVARIA" : "PROCESSO DE ITEM FALTANTE";
+      const modeloCurto = (obj.modelo || "").replace(/^Haval\s+H6\s+/i, "").replace(/^Haval\s+/i, "").toUpperCase();
+      const assunto = `${tituloAssunto} - ${modeloCurto} ${ult6}`;
       const pasta = `${obj.data || "2026-01-01"}_${obj.modelo.replace(/\s+/g, "")}_${ult6}`;
 
-      const docsTexto = [
-        obj.cte ? "CT-e digitalizado" : null,
-        obj.nfe ? "NF-e digitalizada" : null
-      ].filter(Boolean).join(" + ") || "Documentos em conferência";
+      const fraseTipo = isAvaria
+        ? "Segue processo de avaria no seguinte chassi:"
+        : "Segue processo de item faltante no seguinte chassi:";
 
-      const corLinha = obj.cor ? `\n- Cor: ${obj.cor}` : "";
-      const transpLinha = obj.transportadora ? `\n- Transportadora: ${obj.transportadora}` : "";
-      const fiscalLinha = obj.docFiscal ? `\n- Documento Fiscal: ${obj.docFiscal}` : "";
-      const driveLinha = obj.drive ? `\n- Link Pasta Google Drive: ${obj.drive}` : "";
+      const linhaFinal = isAvaria
+        ? "\n@Jean Gustavo Mingarini, favor encaminhar orçamento. Obrigado!!"
+        : "\nFavor verificar e providenciar envio. Obrigado!!";
 
-      const corpo = `Olá, equipe de Atendimento GWM,
+      const linkDriveBloco = obj.drive ? `\nFotos / Docs (Drive): ${obj.drive}\n` : "";
 
-Segue registro formal de ${isAvaria ? "avaria identificada" : "item faltante identificado"} no ato do recebimento de veículo 0km (descarga de carreta) na concessionária Dimas GWM.
+      const corpo = `${saudacao}
 
-DADOS DO VEÍCULO:
-- Concessionária: Dimas GWM
-- Data do Recebimento: ${dataBR}
-- Modelo / Versão: ${obj.modelo}${corLinha}
-- Chassi Completo (VIN): ${chassi}
-- Tipo de Ocorrência: ${obj.tipo}${transpLinha}${fiscalLinha}${driveLinha}
+${fraseTipo}
+${chassi}
 
-DESCRIÇÃO DO OCORRIDO:
-- ${obj.descricao || "[Descrever avaria ou item faltante]"}
-
-EVIDÊNCIAS E DOCUMENTOS:
-- Fotos obrigatórias do veículo e evidência anexas${obj.drive ? " (disponíveis também no link do Drive acima)" : ""}.
-- Documentação fiscal: ${docsTexto}.
-
-Ficamos no aguardo do protocolo e orientações para atendimento.
-
-Atenciosamente,
-Equipe Logística / Pós-Venda
-Dimas GWM`;
+OBS: ${obj.descricao || "[Descrever avaria ou item faltante]"}
+${linkDriveBloco}${linhaFinal}`;
 
       return { to: EMAIL_TO, cc: getCCList(obj.tipo).join(", "), assunto, corpo, pasta, ult6 };
     }
