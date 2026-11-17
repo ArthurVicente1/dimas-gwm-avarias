@@ -1491,28 +1491,33 @@ Dimas GWM`;
         nfe: document.getElementById("chk-nfe").checked
       };
       if (modo === "eml") {
-        baixarRascunhoEML(obj, anexosTemp);
+        prepararArquivosPadronizados(anexosTemp, obj.chassi).then(lista => baixarRascunhoEML(obj, lista));
       } else {
         dispararEmail(obj, modo);
       }
     };
 
-    // LEITURA DE ARQUIVOS & SCANNER DE DOCUMENTO PARA ANDROID
+    // LEITURA DE ARQUIVOS: FOTOS EM .PNG E DOCUMENTOS DIGITALIZADOS/FISCAIS CONSOLIDADOS EM .PDF
     function lerArquivoParaDrive(file, modoScanner = false) {
       return new Promise(resolve => {
         const reader = new FileReader();
         reader.onload = e => {
           if (!file.type.startsWith("image/")) {
-            resolve({ nome: file.name, tipo: file.type || "application/pdf", dataUrl: e.target.result });
+            resolve({
+              nome: file.name,
+              tipo: file.type || "application/pdf",
+              dataUrl: e.target.result,
+              isDocumento: true
+            });
             return;
           }
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            const maxW = modoScanner ? 1600 : 1400;
+            const maxW = modoScanner ? 1600 : 1280;
             const scale = img.width > maxW ? maxW / img.width : 1;
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
             const ctx = canvas.getContext("2d");
 
             if (modoScanner) {
@@ -1520,13 +1525,112 @@ Dimas GWM`;
             }
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const nomeFinal = modoScanner ? `DOC_SCAN_${Date.now()}.jpg` : (file.name || `FOTO_${Date.now()}.jpg`);
-            resolve({ nome: nomeFinal, tipo: "image/jpeg", dataUrl: canvas.toDataURL("image/jpeg", 0.82) });
+
+            if (modoScanner) {
+              // Digitalização de CT-e / Ressalva / NF-e: preparada para virar PDF único
+              const nomeDoc = `DOC_SCAN_${Date.now()}_${Math.floor(Math.random() * 100)}.jpg`;
+              resolve({
+                nome: nomeDoc,
+                tipo: "image/jpeg",
+                dataUrl: canvas.toDataURL("image/jpeg", 0.88),
+                isDocumento: true
+              });
+            } else {
+              // Fotos do veículo: convertidas e salvas em .PNG
+              const baseName = (file.name || `FOTO_${Date.now()}`).replace(/\.[^.]+$/, "");
+              resolve({
+                nome: `${baseName}.png`,
+                tipo: "image/png",
+                dataUrl: canvas.toDataURL("image/png"),
+                isDocumento: false
+              });
+            }
           };
           img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       });
+    }
+
+    // Separa fotos em .PNG e consolida todos os documentos (digitalizações + PDFs) em um único DOCS_CTE_NFE_[CHASSI].pdf
+    async function prepararArquivosPadronizados(listaBruta, chassiStr = "") {
+      const ult6 = (chassiStr || "000000").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(-6) || "000000";
+      const fotosPng = [];
+      const docsParaPdf = [];
+
+      for (const item of listaBruta) {
+        const isPdf = (item.tipo || "") === "application/pdf" || (item.nome || "").toLowerCase().endsWith(".pdf");
+        const isDocImg = item.isDocumento || /^doc_|^scan_|cte|ct-e|nfe|nf-e|ressalva/i.test(item.nome || "");
+        if (isPdf || isDocImg) {
+          docsParaPdf.push(item);
+        } else {
+          fotosPng.push(item);
+        }
+      }
+
+      const resultadoFinal = [];
+
+      // 1. Nomeia fotos sequencialmente em .PNG
+      fotosPng.forEach((f, idx) => {
+        const num = String(idx + 1).padStart(2, "0");
+        resultadoFinal.push({
+          nome: `${num}_FOTO_${ult6}.png`,
+          tipo: "image/png",
+          dataUrl: f.dataUrl
+        });
+      });
+
+      // 2. Consolida todos os documentos (ressalva/CT-e/NF-e digitalizados ou PDFs) em um único .PDF
+      if (docsParaPdf.length > 0) {
+        const { PDFDocument } = PDFLib;
+        const docPdf = await PDFDocument.create();
+
+        for (const d of docsParaPdf) {
+          if (!d.dataUrl || !d.dataUrl.includes(",")) continue;
+          const isPdf = (d.tipo || "") === "application/pdf" || (d.nome || "").toLowerCase().endsWith(".pdf");
+          if (isPdf) {
+            try {
+              const pdfBytes = base64DataUrlToUint8Array(d.dataUrl);
+              const srcDoc = await PDFDocument.load(pdfBytes);
+              const pages = await docPdf.copyPages(srcDoc, srcDoc.getPageIndices());
+              pages.forEach(p => docPdf.addPage(p));
+            } catch (err) {
+              console.warn("Erro ao anexar PDF fiscal:", d.nome, err);
+            }
+          } else {
+            const conv = await imagemDataUrlParaJpegBytes(d.dataUrl);
+            if (conv) {
+              const jpgImg = await docPdf.embedJpg(conv.bytes);
+              const page = docPdf.addPage([595.28, 841.89]);
+              const margin = 24;
+              const maxW = 595.28 - margin * 2;
+              const maxH = 841.89 - margin * 2;
+              const ratio = Math.min(maxW / conv.width, maxH / conv.height);
+              const drawW = conv.width * ratio;
+              const drawH = conv.height * ratio;
+              page.drawImage(jpgImg, {
+                x: (595.28 - drawW) / 2,
+                y: (841.89 - drawH) / 2,
+                width: drawW,
+                height: drawH
+              });
+            }
+          }
+        }
+
+        if (docPdf.getPageCount() > 0) {
+          const mergedBytes = await docPdf.save();
+          const b64Pdf = arrayBufferToBase64Chunks(mergedBytes.buffer).replace(/
+/g, "");
+          resultadoFinal.push({
+            nome: `DOCS_CTE_NFE_${ult6}.pdf`,
+            tipo: "application/pdf",
+            dataUrl: `data:application/pdf;base64,${b64Pdf}`
+          });
+        }
+      }
+
+      return resultadoFinal;
     }
 
     window.anexarArquivosRegistro = async function(event) {
@@ -1551,14 +1655,17 @@ Dimas GWM`;
 
     window.renderAnexosTemp = function() {
       const box = document.getElementById("preview-anexos-novo");
-      box.innerHTML = anexosTemp.map((a, i) => `
-        <div class="relative group rounded-lg overflow-hidden border border-slate-300 bg-white h-16 flex items-center justify-center">
+      box.innerHTML = anexosTemp.map((a, i) => {
+        const isDoc = a.isDocumento || a.tipo === "application/pdf";
+        return `
+        <div class="relative group rounded-lg overflow-hidden border ${isDoc ? "border-indigo-400 bg-indigo-50" : "border-slate-300 bg-white"} h-16 flex items-center justify-center">
           ${a.tipo.startsWith("image/")
             ? `<img src="${a.dataUrl}" class="w-full h-full object-cover" />`
             : `<span class="text-[10px] font-bold text-indigo-700 px-1 text-center truncate">📄 ${a.nome}</span>`}
+          <span class="absolute bottom-0.5 left-0.5 px-1 rounded text-[9px] font-extrabold ${isDoc ? "bg-indigo-600 text-white" : "bg-slate-900/80 text-white"}">${isDoc ? "PDF" : "PNG"}</span>
           <button type="button" onclick="anexosTemp.splice(${i},1); renderAnexosTemp()" class="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">✕</button>
         </div>
-      `).join("");
+      `}).join("");
     };
     window.anexosTemp = anexosTemp;
 
@@ -1587,9 +1694,12 @@ Dimas GWM`;
         let driveFolderUrl = document.getElementById("inp-drive").value.trim();
         let anexosSalvos = [];
 
+        let anexosPadronizados = [];
         if (anexosTemp.length > 0) {
-          statusBox.textContent = `⏳ Enviando ${anexosTemp.length} arquivo(s) ao Drive...`;
-          const driveResp = await enviarArquivosParaDrive5TB(pastaNome, anexosTemp);
+          statusBox.textContent = "⏳ Convertendo fotos (.PNG) e gerando PDF dos documentos...";
+          anexosPadronizados = await prepararArquivosPadronizados(anexosTemp, chassi);
+          statusBox.textContent = `⏳ Enviando ${anexosPadronizados.length} arquivo(s) ao Drive...`;
+          const driveResp = await enviarArquivosParaDrive5TB(pastaNome, anexosPadronizados);
           if (driveResp.folderUrl) driveFolderUrl = driveResp.folderUrl;
           anexosSalvos = driveResp.files || [];
         }
@@ -1626,8 +1736,8 @@ Dimas GWM`;
 
         await salvarRegistroNuvem(novo);
         if (modo === "eml") {
-          statusBox.textContent = "⏳ Gerando rascunho .EML com todos os anexos...";
-          await baixarRascunhoEML(novo, anexosTemp);
+          statusBox.textContent = "⏳ Gerando rascunho .EML com fotos .PNG e documentos .PDF...";
+          await baixarRascunhoEML(novo, anexosPadronizados);
         } else if (modo === "web" || modo === "app") {
           dispararEmail(novo, modo);
         }
@@ -2069,15 +2179,19 @@ Dimas GWM`;
       if (!r) return;
       if (!r.anexos) r.anexos = [];
       const files = Array.from(event.target.files);
-      const preparados = [];
+      const brutos = [];
       for (const f of files) {
-        preparados.push(await lerArquivoParaDrive(f, modoScanner));
+        brutos.push(await lerArquivoParaDrive(f, modoScanner));
+      }
+      const preparados = await prepararArquivosPadronizados(brutos, r.chassi);
+      if (modoScanner && preparados.length > 0 && preparados[0].nome.endsWith(".pdf")) {
+        preparados[0].nome = `DOCS_SCAN_${Date.now()}.pdf`;
       }
       const pastaNome = `${r.data || "2026-01-01"}_${r.modelo.replace(/\s+/g, "")}_${r.chassi.slice(-6)}`;
       const driveResp = await enviarArquivosParaDrive5TB(pastaNome, preparados);
       if (driveResp.folderUrl && !r.drive) r.drive = driveResp.folderUrl;
       r.anexos.push(...(driveResp.files || []));
-      registrarLog(r, `+${files.length} arquivo(s) no Drive`);
+      registrarLog(r, `+${preparados.length} arquivo(s) no Drive`);
       await salvarRegistroNuvem(r);
       event.target.value = "";
     };
@@ -2184,7 +2298,8 @@ Dimas GWM`;
           prog.textContent = `⏳ Enviando ${idx + 1}/${loteTemp.length} (${item.modelo})...`;
 
           const pastaDriveNome = `${item.data}_${item.modelo.replace(/\s+/g, "")}_${item.chassi.slice(-6)}`;
-          const driveResp = await enviarArquivosParaDrive5TB(pastaDriveNome, item.anexos);
+          const anexosLotePadrao = await prepararArquivosPadronizados(item.anexos, item.chassi);
+          const driveResp = await enviarArquivosParaDrive5TB(pastaDriveNome, anexosLotePadrao);
 
           const reg = {
             id: Date.now() + idx,
