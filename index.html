@@ -1620,7 +1620,7 @@ Dimas GWM`;
 
         if (docPdf.getPageCount() > 0) {
           const mergedBytes = await docPdf.save();
-          const b64Pdf = arrayBufferToBase64Chunks(mergedBytes.buffer).replace(/\r\n/g, "");
+          const b64Pdf = arrayBufferToBase64Chunks(mergedBytes.buffer).replace(/
 /g, "");
           resultadoFinal.push({
             nome: `DOCS_CTE_NFE_${ult6}.pdf`,
