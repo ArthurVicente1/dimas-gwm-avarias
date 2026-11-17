@@ -611,7 +611,10 @@
             ⏳ Cobrar
           </button>
           <button id="mod-btn-pdf" onclick="baixarTermoPDF()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
-            📄 Baixar PDF
+            📄 PDF Docs
+          </button>
+          <button id="mod-btn-fotos" onclick="baixarFotosIndividuaisModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
+            🖼️ Baixar Fotos
           </button>
           <button onclick="fecharModalDossie()" class="text-slate-400 hover:text-slate-700 text-xl font-bold px-2">✕</button>
         </div>
@@ -1521,7 +1524,7 @@ Dimas GWM`;
             const ctx = canvas.getContext("2d");
 
             if (modoScanner) {
-              ctx.filter = "grayscale(100%) contrast(155%) brightness(108%)";
+              ctx.filter = "grayscale(100%) contrast(195%) brightness(115%)";
             }
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -1843,7 +1846,10 @@ Dimas GWM`;
                     <div style="display:none" class="flex-col items-center justify-center p-2 text-center text-slate-600"><span class="text-2xl">🖼️</span><span class="text-[10px] font-bold mt-1 break-all">${a.nome}</span></div>
                    </a>`
                 : `<a href="${linkAbrir}" target="_blank" class="h-36 flex flex-col items-center justify-center p-2 text-center hover:bg-slate-100"><span class="text-3xl">📄</span><span class="text-[11px] font-bold text-indigo-700 mt-1 break-all">${a.nome}</span></a>`}
-              <a href="${linkAbrir}" target="_blank" class="bg-white border-t border-slate-200 py-1.5 text-center text-[11px] font-bold text-cyan-700 hover:bg-cyan-50 truncate px-2">🔗 ${a.nome || "Abrir"}</a>
+              <div class="bg-white border-t border-slate-200 py-1.5 px-2 flex items-center justify-between gap-1">
+                <a href="${linkAbrir}" target="_blank" class="text-[11px] font-bold text-cyan-700 hover:underline truncate">🔗 ${a.nome || "Abrir"}</a>
+                <button type="button" onclick="baixarArquivoUnicoModal(${r.id}, '${a.id || ""}', '${(a.nome || "").replace(/'/g, "")}')" class="bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded shrink-0">⬇️</button>
+              </div>
             </div>
           `;
         }).join("");
@@ -1974,6 +1980,25 @@ Dimas GWM`;
       });
     }
 
+    function forcarDownloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+
+    function dataUrlParaBlob(dataUrl) {
+      const parts = dataUrl.split(",");
+      const mime = (parts[0].match(/:(.*?);/) || [])[1] || "application/octet-stream";
+      const bytes = base64DataUrlToUint8Array(dataUrl);
+      return new Blob([bytes], { type: mime });
+    }
+
+    // Baixa SOMENTE os documentos (CT-e, Ressalva, NF-e) em PDF — NUNCA mistura fotos aqui
     window.baixarTermoPDF = async function(idParam = null) {
       const targetId = idParam || modalRegistroId;
       const r = registros.find(x => x.id === targetId);
@@ -1982,73 +2007,29 @@ Dimas GWM`;
       const btnModal = document.getElementById("mod-btn-pdf");
       if (btnModal && !idParam) {
         btnModal.disabled = true;
-        btnModal.textContent = "⏳ Gerando PDF...";
+        btnModal.textContent = "⏳ Baixando PDF...";
       }
 
       try {
         const arquivosCompletos = await buscarArquivosDoDriveViaScript(r.anexos || []);
-
-        const fotos = arquivosCompletos.filter(a =>
-          (a.tipo || "").startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(a.nome || "")
-        );
         const pdfsAnexos = arquivosCompletos.filter(a =>
           (a.tipo || "") === "application/pdf" || (a.nome || "").toLowerCase().endsWith(".pdf")
         );
 
-        if (!fotos.length && !pdfsAnexos.length) {
-          alert("Nenhuma foto ou documento anexado neste veículo para gerar o PDF.");
+        if (!pdfsAnexos.length) {
+          alert("Nenhum documento digitalizado em PDF (CT-e / NF-e) encontrado neste veículo.");
           return;
         }
 
-        const { PDFDocument, StandardFonts, rgb } = PDFLib;
-        const mergedPdf = await PDFDocument.create();
-        const fontBold = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
-        const fontReg = await mergedPdf.embedFont(StandardFonts.Helvetica);
+        const chassiLimpo = (r.chassi || "SEM_CHASSI").replace(/[^A-Z0-9]/gi, "").toUpperCase();
 
-        const pageW = 595.28;
-        const pageH = 841.89;
-        const margin = 36;
-        const slotW = pageW - margin * 2;
-        const slotH = 335;
-
-        for (let i = 0; i < fotos.length; i += 2) {
-          const page = mergedPdf.addPage([pageW, pageH]);
-          page.drawText(`DIMAS GWM — EVIDÊNCIAS (${r.modelo} | Chassi: ${r.chassi})`, {
-            x: margin,
-            y: pageH - 32,
-            size: 10,
-            font: fontBold,
-            color: rgb(0.05, 0.11, 0.15)
-          });
-
-          const par = [fotos[i], fotos[i + 1]].filter(Boolean);
-          for (let slotIdx = 0; slotIdx < par.length; slotIdx++) {
-            const fotoObj = par[slotIdx];
-            if (!fotoObj.dataUrl) continue;
-            const conv = await imagemDataUrlParaJpegBytes(fotoObj.dataUrl);
-            if (!conv) continue;
-
-            const embeddedImg = await mergedPdf.embedJpg(conv.bytes);
-            const ratio = Math.min(slotW / conv.width, (slotH - 22) / conv.height);
-            const drawW = conv.width * ratio;
-            const drawH = conv.height * ratio;
-
-            const topY = pageH - 52 - slotIdx * (slotH + 20);
-            const imgX = margin + (slotW - drawW) / 2;
-            const imgY = topY - drawH;
-
-            page.drawImage(embeddedImg, { x: imgX, y: imgY, width: drawW, height: drawH });
-            const legenda = `${i + slotIdx + 1}/${fotos.length} — ${(fotoObj.nome || "").slice(0, 65)}`;
-            page.drawText(legenda, {
-              x: margin,
-              y: imgY - 14,
-              size: 8.5,
-              font: fontReg,
-              color: rgb(0.3, 0.35, 0.42)
-            });
-          }
+        if (pdfsAnexos.length === 1 && pdfsAnexos[0].dataUrl) {
+          forcarDownloadBlob(dataUrlParaBlob(pdfsAnexos[0].dataUrl), `DOCS_${chassiLimpo}.pdf`);
+          return;
         }
 
+        const { PDFDocument } = PDFLib;
+        const mergedPdf = await PDFDocument.create();
         for (const pdfAnexo of pdfsAnexos) {
           if (!pdfAnexo.dataUrl || !pdfAnexo.dataUrl.includes(",")) continue;
           try {
@@ -2062,17 +2043,67 @@ Dimas GWM`;
         }
 
         const finalPdfBytes = await mergedPdf.save();
-        const blob = new Blob([finalPdfBytes], { type: "application/pdf" });
-        const link = document.createElement("a");
-        const chassiLimpo = (r.chassi || "SEM_CHASSI").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-        link.href = URL.createObjectURL(blob);
-        link.download = `Dimas_GWM_${chassiLimpo}.pdf`;
-        link.click();
+        forcarDownloadBlob(new Blob([finalPdfBytes], { type: "application/pdf" }), `DOCS_${chassiLimpo}.pdf`);
       } finally {
         if (btnModal && !idParam) {
           btnModal.disabled = false;
-          btnModal.textContent = "📄 Baixar PDF";
+          btnModal.textContent = "📄 PDF Docs";
         }
+      }
+    };
+
+    // Baixa CADA FOTO INDIVIDUALMENTE em .PNG (sem juntar em ZIP nem PDF)
+    window.baixarFotosIndividuaisModal = async function(idParam = null) {
+      const targetId = idParam || modalRegistroId;
+      const r = registros.find(x => x.id === targetId);
+      if (!r) return;
+
+      const btnModal = document.getElementById("mod-btn-fotos");
+      if (btnModal && !idParam) {
+        btnModal.disabled = true;
+        btnModal.textContent = "⏳ Baixando Fotos...";
+      }
+
+      try {
+        const arquivosCompletos = await buscarArquivosDoDriveViaScript(r.anexos || []);
+        const fotos = arquivosCompletos.filter(a =>
+          (a.tipo || "").startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(a.nome || "")
+        );
+
+        if (!fotos.length) {
+          alert("Nenhuma foto anexada neste veículo.");
+          return;
+        }
+
+        const chassiLimpo = (r.chassi || "SEM_CHASSI").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+        for (let i = 0; i < fotos.length; i++) {
+          const f = fotos[i];
+          if (!f.dataUrl) continue;
+          const num = String(i + 1).padStart(2, "0");
+          const ext = (f.nome || "").toLowerCase().endsWith(".jpg") || (f.nome || "").toLowerCase().endsWith(".jpeg") ? "jpg" : "png";
+          const nomeFinal = `${num}_FOTO_${chassiLimpo}.${ext}`;
+          forcarDownloadBlob(dataUrlParaBlob(f.dataUrl), nomeFinal);
+          await new Promise(res => setTimeout(res, 350));
+        }
+      } finally {
+        if (btnModal && !idParam) {
+          btnModal.disabled = false;
+          btnModal.textContent = "🖼️ Baixar Fotos";
+        }
+      }
+    };
+
+    // Baixa um único arquivo específico ao clicar no botão ⬇️ da miniatura
+    window.baixarArquivoUnicoModal = async function(regId, fileId, fileName) {
+      const r = registros.find(x => x.id === regId);
+      if (!r) return;
+      const alvo = (r.anexos || []).find(a => (fileId && a.id === fileId) || a.nome === fileName);
+      if (!alvo) return;
+      const [completo] = await buscarArquivosDoDriveViaScript([alvo]);
+      if (completo && completo.dataUrl) {
+        forcarDownloadBlob(dataUrlParaBlob(completo.dataUrl), completo.nome || fileName || "arquivo");
+      } else if (alvo.viewUrl || alvo.url) {
+        window.open(alvo.viewUrl || alvo.url, "_blank");
       }
     };
 
@@ -2420,7 +2451,8 @@ Dimas GWM`;
             </td>
             <td class="p-3 whitespace-nowrap text-center space-x-1">
               <button onclick="baixarEmlLinha(${r.id})" title="Baixar Rascunho .EML c/ Anexos para Outlook" class="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] hover:opacity-90 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm">📧 .EML</button>
-              <button onclick="baixarTermoPDF(${r.id})" title="Baixar Ficha PDF" class="bg-slate-800 hover:bg-slate-900 text-white px-2 py-1 rounded-lg text-[11px] font-bold">📄 PDF</button>
+              <button onclick="baixarTermoPDF(${r.id})" title="Baixar PDF dos Documentos (CT-e/NF-e)" class="bg-slate-800 hover:bg-slate-900 text-white px-2 py-1 rounded-lg text-[11px] font-bold">📄 PDF</button>
+              <button onclick="baixarFotosIndividuaisModal(${r.id})" title="Baixar Todas as Fotos Individuais (.PNG)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded-lg text-[11px] font-bold">🖼️ Fotos</button>
               <button onclick="cobrarRetornoGWM(${r.id})" title="Cobrar Retorno GWM" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-lg font-bold">⏳</button>
               <button onclick="avisarWhatsAppLinha(${r.id})" title="WhatsApp" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-bold">💬</button>
               <button onclick="excluirRegistro(${r.id})" title="Excluir" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-lg font-bold">🗑️</button>
