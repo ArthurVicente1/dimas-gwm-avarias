@@ -1877,7 +1877,6 @@ Dimas GWM`;
       }
 
       try {
-        const dataBR = r.data ? r.data.split("-").reverse().join("/") : "-";
         const arquivosCompletos = await buscarArquivosDoDriveViaScript(r.anexos || []);
 
         const fotos = arquivosCompletos.filter(a =>
@@ -1887,92 +1886,16 @@ Dimas GWM`;
           (a.tipo || "") === "application/pdf" || (a.nome || "").toLowerCase().endsWith(".pdf")
         );
 
-        // 1. Renderizar APENAS a Página 1 (Capa / Ficha Técnica) via html2pdf
-        const capaDiv = document.createElement("div");
-        capaDiv.style.width = "750px";
-        capaDiv.style.padding = "24px";
-        capaDiv.style.fontFamily = "Arial, sans-serif";
-        capaDiv.style.color = "#0f172a";
-        capaDiv.style.background = "#ffffff";
+        if (!fotos.length && !pdfsAnexos.length) {
+          alert("Nenhuma foto ou documento anexado neste veículo para gerar o PDF.");
+          return;
+        }
 
-        capaDiv.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#0D1C26; color:#ffffff; padding:16px 22px; border-radius:8px;">
-            <div style="font-size:15px;"><strong>DIMAS 50 ANOS</strong> &nbsp;|&nbsp; <strong>GWM</strong> Hello, tomorrow.</div>
-            <div style="font-size:12px;">Dossiê de Ocorrência 0km</div>
-          </div>
-
-          <div style="font-size:15px; font-weight:bold; margin:20px 0 10px; border-bottom:2px solid #0D1C26; padding-bottom:5px;">1. Dados do Veículo e Ocorrência</div>
-          <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left; width:22%;">Concessionária</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px; width:28%;">Dimas GWM</td>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left; width:22%;">Data Recebimento</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px; width:28%;">${dataBR}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Modelo / Cor</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.modelo} (${r.cor || "-"})</td>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Chassi (VIN)</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;"><strong>${r.chassi}</strong></td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Transportadora</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.transportadora || "-"}</td>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Tapete</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.tapete || "Sim"}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Tipo</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.tipo}</td>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Protocolo GWM</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.protocolo || "Pendente"}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Nº OS</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">${r.osNumero || "-"}</td>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Orçamento</th>
-              <td style="border:1px solid #cbd5e1; padding:8px 10px;">R$ ${(r.valorOrcamento || 0).toFixed(2)}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Descrição</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${r.descricao}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Anexos no Dossiê</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${fotos.length} foto(s)/digitalização(ões) + ${pdfsAnexos.length} documento(s) PDF</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Google Drive</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px; word-break:break-all;">${r.drive || "-"}</td>
-            </tr>
-            <tr>
-              <th style="border:1px solid #cbd5e1; padding:8px 10px; background:#f1f5f9; text-align:left;">Funilaria</th>
-              <td colspan="3" style="border:1px solid #cbd5e1; padding:8px 10px;">${r.okFunilaria ? "Confirmado por " + r.okInfo : "Pendente"}</td>
-            </tr>
-          </table>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:44px; font-size:11px; text-align:center;">
-            <div style="border-top:1px solid #333; padding-top:6px;">Logística / Pátio<br/>Dimas GWM</div>
-            <div style="border-top:1px solid #333; padding-top:6px;">Funilaria / Transportadora<br/>Conferência</div>
-          </div>
-        `;
-
-        const optCapa = {
-          margin: 8,
-          image: { type: "jpeg", quality: 0.92 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-        };
-
-        const capaBuffer = await html2pdf().set(optCapa).from(capaDiv).outputPdf("arraybuffer");
-
-        // 2. Montar PDF final direto com pdf-lib: Capa + Todas as Fotos (2 por página A4) + Todos os PDFs (CT-e / NF-e)
         const { PDFDocument, StandardFonts, rgb } = PDFLib;
-        const mergedPdf = await PDFDocument.load(capaBuffer);
+        const mergedPdf = await PDFDocument.create();
         const fontBold = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
         const fontReg = await mergedPdf.embedFont(StandardFonts.Helvetica);
 
-        // Desenha 2 fotos por página A4 (595.28 x 841.89 pt) para nenhuma imagem ser cortada
         const pageW = 595.28;
         const pageH = 841.89;
         const margin = 36;
@@ -2017,7 +1940,6 @@ Dimas GWM`;
           }
         }
 
-        // Mescla todas as páginas originais dos PDFs (CT-e e NF-e)
         for (const pdfAnexo of pdfsAnexos) {
           if (!pdfAnexo.dataUrl || !pdfAnexo.dataUrl.includes(",")) continue;
           try {
