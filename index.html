@@ -877,25 +877,58 @@
       }
     }
 
-    // UPLOAD PARA GOOGLE DRIVE 5TB VIA APPS SCRIPT
-    async function enviarArquivosParaDrive5TB(folderName, arquivosList) {
-      if (!arquivosList || !arquivosList.length) return { folderUrl: "", files: [] };
+    // UPLOAD RESILIENTE PARA GOOGLE DRIVE 5TB (1 ARQUIVO POR REQUISIÇÃO PARA NÃO TRAVAR NO CELULAR)
+    async function enviarArquivosParaDrive5TB(folderName, arquivosList, onProgress = null) {
+      if (!arquivosList || !arquivosList.length) return { folderUrl: "", files: [], erros: [] };
 
-      const payloadFiles = arquivosList.map(a => ({
-        name: a.nome,
-        mimeType: a.tipo,
-        base64: a.dataUrl.split(",")[1]
-      }));
+      let folderUrl = "";
+      const uploadedFiles = [];
+      const erros = [];
 
-      const resp = await fetch(DRIVE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ folderName, files: payloadFiles })
-      });
+      for (let i = 0; i < arquivosList.length; i++) {
+        const a = arquivosList[i];
+        if (onProgress) onProgress(i + 1, arquivosList.length, a.nome);
 
-      const result = await resp.json();
-      if (!result.ok) throw new Error(result.error || "Falha no Drive");
-      return { folderUrl: result.folderUrl, files: result.files };
+        const base64Data = (a.dataUrl && a.dataUrl.includes(",")) ? a.dataUrl.split(",")[1] : "";
+        if (!base64Data) continue;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+          const resp = await fetch(DRIVE_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            signal: controller.signal,
+            body: JSON.stringify({
+              folderName,
+              files: [{
+                name: a.nome,
+                mimeType: a.tipo || "application/octet-stream",
+                base64: base64Data
+              }]
+            })
+          });
+          clearTimeout(timeoutId);
+
+          const rawText = await resp.text();
+          let result;
+          try {
+            result = JSON.parse(rawText);
+          } catch (_) {
+            throw new Error("Resposta inválida do Google Drive");
+          }
+
+          if (!result.ok) throw new Error(result.error || "Falha no Drive");
+          if (result.folderUrl) folderUrl = result.folderUrl;
+          if (Array.isArray(result.files)) uploadedFiles.push(...result.files);
+        } catch (errFile) {
+          console.warn("Falha ao enviar arquivo ao Drive:", a.nome, errFile);
+          erros.push(`${a.nome}: ${errFile.message}`);
+        }
+      }
+
+      return { folderUrl, files: uploadedFiles, erros };
     }
 
     // INTELIGÊNCIA ARTIFICIAL GEMINI 3.8 FLASH
@@ -1500,10 +1533,11 @@ Dimas GWM`;
       }
     };
 
-    // LEITURA DE ARQUIVOS: FOTOS EM .PNG E DOCUMENTOS DIGITALIZADOS/FISCAIS CONSOLIDADOS EM .PDF
+    // LEITURA OTIMIZADA PARA ANDROID: FOTOS LEVES (JPG/PNG) E DOCUMENTOS CONSOLIDADOS EM .PDF
     function lerArquivoParaDrive(file, modoScanner = false) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Falha ao ler arquivo do aparelho."));
         reader.onload = e => {
           if (!file.type.startsWith("image/")) {
             resolve({
@@ -1515,36 +1549,36 @@ Dimas GWM`;
             return;
           }
           const img = new Image();
+          img.onerror = () => reject(new Error("Imagem inválida ou corrompida."));
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            const maxW = modoScanner ? 1600 : 1280;
+            const maxW = modoScanner ? 1400 : 1100;
             const scale = img.width > maxW ? maxW / img.width : 1;
             canvas.width = Math.round(img.width * scale);
             canvas.height = Math.round(img.height * scale);
             const ctx = canvas.getContext("2d");
 
             if (modoScanner) {
-              ctx.filter = "grayscale(100%) contrast(195%) brightness(115%)";
+              ctx.filter = "grayscale(100%) contrast(185%) brightness(112%)";
             }
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             if (modoScanner) {
-              // Digitalização de CT-e / Ressalva / NF-e: preparada para virar PDF único
               const nomeDoc = `DOC_SCAN_${Date.now()}_${Math.floor(Math.random() * 100)}.jpg`;
               resolve({
                 nome: nomeDoc,
                 tipo: "image/jpeg",
-                dataUrl: canvas.toDataURL("image/jpeg", 0.88),
+                dataUrl: canvas.toDataURL("image/jpeg", 0.80),
                 isDocumento: true
               });
             } else {
-              // Fotos do veículo: convertidas e salvas em .PNG
+              // Salva foto em JPEG leve (~180KB) para envio rápido no 4G Android sem travar o Drive
               const baseName = (file.name || `FOTO_${Date.now()}`).replace(/\.[^.]+$/, "");
               resolve({
-                nome: `${baseName}.png`,
-                tipo: "image/png",
-                dataUrl: canvas.toDataURL("image/png"),
+                nome: `${baseName}.jpg`,
+                tipo: "image/jpeg",
+                dataUrl: canvas.toDataURL("image/jpeg", 0.82),
                 isDocumento: false
               });
             }
@@ -1573,12 +1607,12 @@ Dimas GWM`;
 
       const resultadoFinal = [];
 
-      // 1. Nomeia fotos sequencialmente em .PNG
+      // 1. Nomeia fotos sequencialmente em .JPG
       fotosPng.forEach((f, idx) => {
         const num = String(idx + 1).padStart(2, "0");
         resultadoFinal.push({
-          nome: `${num}_FOTO_${ult6}.png`,
-          tipo: "image/png",
+          nome: `${num}_FOTO_${ult6}.jpg`,
+          tipo: f.tipo || "image/jpeg",
           dataUrl: f.dataUrl
         });
       });
@@ -1664,7 +1698,7 @@ Dimas GWM`;
           ${a.tipo.startsWith("image/")
             ? `<img src="${a.dataUrl}" class="w-full h-full object-cover" />`
             : `<span class="text-[10px] font-bold text-indigo-700 px-1 text-center truncate">📄 ${a.nome}</span>`}
-          <span class="absolute bottom-0.5 left-0.5 px-1 rounded text-[9px] font-extrabold ${isDoc ? "bg-indigo-600 text-white" : "bg-slate-900/80 text-white"}">${isDoc ? "PDF" : "PNG"}</span>
+          <span class="absolute bottom-0.5 left-0.5 px-1 rounded text-[9px] font-extrabold ${isDoc ? "bg-indigo-600 text-white" : "bg-slate-900/80 text-white"}">${isDoc ? "PDF" : "JPG"}</span>
           <button type="button" onclick="anexosTemp.splice(${i},1); renderAnexosTemp()" class="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">✕</button>
         </div>
       `}).join("");
@@ -1697,16 +1731,19 @@ Dimas GWM`;
         let anexosSalvos = [];
 
         let anexosPadronizados = [];
+        let avisosDrive = [];
         if (anexosTemp.length > 0) {
-          statusBox.textContent = "⏳ Convertendo fotos (.PNG) e gerando PDF dos documentos...";
+          statusBox.textContent = "⏳ Preparando fotos e PDF dos documentos...";
           anexosPadronizados = await prepararArquivosPadronizados(anexosTemp, chassi);
-          statusBox.textContent = `⏳ Enviando ${anexosPadronizados.length} arquivo(s) ao Drive...`;
-          const driveResp = await enviarArquivosParaDrive5TB(pastaNome, anexosPadronizados);
+          const driveResp = await enviarArquivosParaDrive5TB(pastaNome, anexosPadronizados, (atual, total, nome) => {
+            statusBox.textContent = `⏳ Enviando arquivo ${atual}/${total} (${nome}) ao Drive...`;
+          });
           if (driveResp.folderUrl) driveFolderUrl = driveResp.folderUrl;
           anexosSalvos = driveResp.files || [];
+          avisosDrive = driveResp.erros || [];
         }
 
-        statusBox.textContent = "⏳ Salvando...";
+        statusBox.textContent = "⏳ Gravando na planilha...";
 
         const novo = {
           id: Date.now(),
@@ -1759,9 +1796,14 @@ Dimas GWM`;
         updateLivePreview();
         statusBox.classList.add("hidden");
 
+        const msgAvisoDrive = avisosDrive.length > 0
+          ? `\n\n⚠️ Aviso Drive (${avisosDrive.length} arquivo(s) não subiram): ${avisosDrive.join(" | ")}`
+          : "";
+
         if (continuarCarreta) {
-          alert(`Salvo (${novo.modelo} #${chassi.slice(-6)})! Pronto para o próximo carro da carreta.`);
+          alert(`Salvo na planilha (${novo.modelo} #${chassi.slice(-6)})!${msgAvisoDrive}`);
         } else {
+          if (msgAvisoDrive) alert(`Registro salvo na planilha!${msgAvisoDrive}`);
           switchTab("planilha");
         }
       } catch (e) {
