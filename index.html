@@ -911,7 +911,13 @@
     });
 
     async function salvarRegistroNuvem(item) {
-      await setDoc(doc(db, "ocorrencias", String(item.id)), item);
+      // Sanitiza para garantir zero undefined/funções que o Firestore rejeita
+      const payloadLimpo = JSON.parse(JSON.stringify(item));
+      const savePromise = setDoc(doc(db, "ocorrencias", String(payloadLimpo.id)), payloadLimpo);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("TIMEOUT_FIRESTORE")), 12000)
+      );
+      await Promise.race([savePromise, timeoutPromise]);
     }
 
     async function excluirRegistroNuvem(id) {
@@ -1635,31 +1641,42 @@ Dimas GWM`;
       }
     };
 
-    // LEITURA OTIMIZADA PARA ANDROID: FOTOS LEVES (JPG/PNG) E DOCUMENTOS CONSOLIDADOS EM .PDF
+    // LEITURA ULTRA-LEVE PARA CELULAR ANDROID (USA OBJECT URL PARA NÃO ESTOURAR MEMÓRIA DA CÂMERA)
     function lerArquivoParaDrive(file, modoScanner = false) {
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Falha ao ler arquivo do aparelho."));
-        reader.onload = e => {
-          if (!file.type.startsWith("image/")) {
+        const nomeLower = (file.name || "").toLowerCase();
+        const isImg = (file.type && file.type.startsWith("image/")) || /\.(jpg|jpeg|png|webp|heic|heif)$/i.test(nomeLower);
+
+        if (!isImg) {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("Falha ao ler PDF do aparelho."));
+          reader.onload = e => {
             resolve({
-              nome: file.name,
-              tipo: file.type || "application/pdf",
+              nome: file.name || `DOC_${Date.now()}.pdf`,
+              tipo: "application/pdf",
               dataUrl: e.target.result,
               isDocumento: true
             });
-            return;
-          }
-          const img = new Image();
-          img.onerror = () => reject(new Error("Imagem inválida ou corrompida."));
-          img.onload = () => {
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        const objUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onerror = () => {
+          URL.revokeObjectURL(objUrl);
+          reject(new Error("Não foi possível processar a imagem da câmera."));
+        };
+        img.onload = () => {
+          try {
             const canvas = document.createElement("canvas");
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             const redeLenta = conn && (conn.saveData || /2g|3g/.test(conn.effectiveType || ""));
-            const maxW = modoScanner ? (redeLenta ? 1200 : 1450) : (redeLenta ? 920 : 1100);
+            const maxW = modoScanner ? (redeLenta ? 1100 : 1350) : (redeLenta ? 850 : 1024);
             const scale = img.width > maxW ? maxW / img.width : 1;
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
             const ctx = canvas.getContext("2d");
 
             if (modoScanner) {
@@ -1667,29 +1684,31 @@ Dimas GWM`;
             }
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(objUrl);
 
             if (modoScanner) {
               const nomeDoc = `DOC_SCAN_${Date.now()}_${Math.floor(Math.random() * 100)}.jpg`;
               resolve({
                 nome: nomeDoc,
                 tipo: "image/jpeg",
-                dataUrl: canvas.toDataURL("image/jpeg", 0.80),
+                dataUrl: canvas.toDataURL("image/jpeg", 0.78),
                 isDocumento: true
               });
             } else {
-              // Salva foto em JPEG leve (~180KB) para envio rápido no 4G Android sem travar o Drive
               const baseName = (file.name || `FOTO_${Date.now()}`).replace(/\.[^.]+$/, "");
               resolve({
                 nome: `${baseName}.jpg`,
                 tipo: "image/jpeg",
-                dataUrl: canvas.toDataURL("image/jpeg", 0.82),
+                dataUrl: canvas.toDataURL("image/jpeg", 0.80),
                 isDocumento: false
               });
             }
-          };
-          img.src = e.target.result;
+          } catch (errCanvas) {
+            URL.revokeObjectURL(objUrl);
+            reject(errCanvas);
+          }
         };
-        reader.readAsDataURL(file);
+        img.src = objUrl;
       });
     }
 
@@ -1732,11 +1751,16 @@ Dimas GWM`;
           if (isPdf) {
             try {
               const pdfBytes = base64DataUrlToUint8Array(d.dataUrl);
-              const srcDoc = await PDFDocument.load(pdfBytes);
+              const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
               const pages = await docPdf.copyPages(srcDoc, srcDoc.getPageIndices());
               pages.forEach(p => docPdf.addPage(p));
             } catch (err) {
-              console.warn("Erro ao anexar PDF fiscal:", d.nome, err);
+              console.warn("PDF protegido/incompatível, mantendo arquivo original:", d.nome, err);
+              resultadoFinal.push({
+                nome: d.nome || `DOC_${ult6}.pdf`,
+                tipo: "application/pdf",
+                dataUrl: d.dataUrl
+              });
             }
           } else {
             const conv = await imagemDataUrlParaJpegBytes(d.dataUrl);
@@ -1774,23 +1798,41 @@ Dimas GWM`;
     }
 
     window.anexarArquivosRegistro = async function(event) {
-      const files = Array.from(event.target.files);
-      for (const f of files) {
-        const item = await lerArquivoParaDrive(f, false);
-        anexosTemp.push(item);
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      atualizarProgressoNovo(25, `📸 Processando ${files.length} arquivo(s)...`);
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const item = await lerArquivoParaDrive(files[i], false);
+          anexosTemp.push(item);
+        }
+        renderAnexosTemp();
+        mostrarToast(`${files.length} arquivo(s) anexado(s)!`, "success", 2200);
+      } catch (err) {
+        mostrarToast("Erro ao anexar: " + err.message, "error", 4500);
+      } finally {
+        ocultarProgressoNovo();
+        event.target.value = "";
       }
-      renderAnexosTemp();
-      event.target.value = "";
     };
 
     window.digitalizarDocumentoAndroid = async function(event) {
-      const files = Array.from(event.target.files);
-      for (const f of files) {
-        const item = await lerArquivoParaDrive(f, true);
-        anexosTemp.push(item);
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      atualizarProgressoNovo(25, "📄 Digitalizando documento...");
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const item = await lerArquivoParaDrive(files[i], true);
+          anexosTemp.push(item);
+        }
+        renderAnexosTemp();
+        mostrarToast("Documento digitalizado (será salvo em PDF)!", "success", 2500);
+      } catch (err) {
+        mostrarToast("Erro ao digitalizar: " + err.message, "error", 4500);
+      } finally {
+        ocultarProgressoNovo();
+        event.target.value = "";
       }
-      renderAnexosTemp();
-      event.target.value = "";
     };
 
     window.renderAnexosTemp = function() {
@@ -1912,7 +1954,16 @@ Dimas GWM`;
         }
 
         atualizarProgressoNovo(90, "⏳ Gravando na planilha na nuvem...");
-        await salvarRegistroNuvem(novo);
+        try {
+          await salvarRegistroNuvem(novo);
+        } catch (errDb) {
+          // Se o 4G falhou na hora de gravar no Firebase, salva na fila offline e atualiza a tela local
+          await enfileirarRegistroOffline(novo, pastaNome, novo.anexos.length ? [] : anexosPadronizados);
+          registros.unshift(novo);
+          renderDashboard();
+          renderPlanilha();
+          mostrarToast("Sinal fraco: salvo localmente e entrará na nuvem assim que estabilizar!", "warning", 5000);
+        }
         atualizarProgressoNovo(100, "✅ Concluído!");
 
         if (modo === "eml") {
@@ -2392,24 +2443,31 @@ Dimas GWM`;
 
     window.anexarNoModal = async function(event, modoScanner = false) {
       const r = registros.find(x => x.id === modalRegistroId);
-      if (!r) return;
+      const files = Array.from(event.target.files || []);
+      if (!r || !files.length) return;
       if (!r.anexos) r.anexos = [];
-      const files = Array.from(event.target.files);
-      const brutos = [];
-      for (const f of files) {
-        brutos.push(await lerArquivoParaDrive(f, modoScanner));
+      mostrarToast(`Enviando ${files.length} arquivo(s) ao Drive...`, "info", 3000);
+      try {
+        const brutos = [];
+        for (const f of files) {
+          brutos.push(await lerArquivoParaDrive(f, modoScanner));
+        }
+        const preparados = await prepararArquivosPadronizados(brutos, r.chassi);
+        if (modoScanner && preparados.length > 0 && preparados[0].nome.endsWith(".pdf")) {
+          preparados[0].nome = `DOCS_SCAN_${Date.now()}.pdf`;
+        }
+        const pastaNome = `${r.data || "2026-01-01"}_${r.modelo.replace(/\s+/g, "")}_${r.chassi.slice(-6)}`;
+        const driveResp = await enviarArquivosParaDrive5TB(pastaNome, preparados);
+        if (driveResp.folderUrl && !r.drive) r.drive = driveResp.folderUrl;
+        r.anexos.push(...(driveResp.files || []));
+        registrarLog(r, `+${preparados.length} arquivo(s) no Drive`);
+        await salvarRegistroNuvem(r);
+        mostrarToast("Arquivos adicionados ao Dossiê!", "success");
+      } catch (err) {
+        mostrarToast("Erro ao anexar no Dossiê: " + err.message, "error", 4500);
+      } finally {
+        event.target.value = "";
       }
-      const preparados = await prepararArquivosPadronizados(brutos, r.chassi);
-      if (modoScanner && preparados.length > 0 && preparados[0].nome.endsWith(".pdf")) {
-        preparados[0].nome = `DOCS_SCAN_${Date.now()}.pdf`;
-      }
-      const pastaNome = `${r.data || "2026-01-01"}_${r.modelo.replace(/\s+/g, "")}_${r.chassi.slice(-6)}`;
-      const driveResp = await enviarArquivosParaDrive5TB(pastaNome, preparados);
-      if (driveResp.folderUrl && !r.drive) r.drive = driveResp.folderUrl;
-      r.anexos.push(...(driveResp.files || []));
-      registrarLog(r, `+${preparados.length} arquivo(s) no Drive`);
-      await salvarRegistroNuvem(r);
-      event.target.value = "";
     };
 
     window.fecharModalDossie = function() {
