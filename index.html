@@ -558,7 +558,7 @@
               <option value="Todos">Todos</option>
               <option value="Avaria">Avarias</option>
               <option value="Item Faltante">Faltantes</option>
-              <option value="SemProtocolo">🚨 Sem Protocolo GWM</option>
+              <option value="SemProtocolo">🚨 Pendente Envio E-mail</option>
               <option value="SemOK">🔧 Sem OK Funilaria</option>
             </select>
             <button onclick="exportarCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
@@ -932,22 +932,22 @@
       await deleteDoc(doc(db, "usuarios", String(id)));
     }
 
-    // ALERTA PROATIVO DE SLA 72H
+    // ALERTA PROATIVO DE SLA 72H (APENAS PARA E-MAILS AINDA NÃO ENVIADOS = "Pendente Envio")
     function verificarAlertasSLA() {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const criticos = registros.filter(r => {
-        if (r.status === "Concluído" || !r.data) return false;
+        if (r.status !== "Pendente Envio" || !r.data) return false;
         const rec = new Date(r.data + "T00:00:00");
         const diffDias = Math.floor((hoje - rec) / (1000 * 60 * 60 * 24));
-        return diffDias >= 2 && !(r.protocolo || "").trim();
+        return diffDias >= 2;
       });
 
       const banner = document.getElementById("sla-critical-banner");
       if (criticos.length > 0) {
         const listaChassis = criticos.map(c => `${c.modelo} (#${c.chassi.slice(-6)})`).join(", ");
         document.getElementById("sla-critical-text").textContent =
-          `SLA 72H: ${criticos.length} sem protocolo GWM (${listaChassis})`;
+          `SLA 72H: ${criticos.length} e-mail(s) pendente(s) de envio (${listaChassis})`;
         banner.classList.remove("hidden");
       } else {
         banner.classList.add("hidden");
@@ -1226,13 +1226,12 @@
     }
 
     function getBadgeSLA(dataStr, status, protocolo) {
-      if (status === "Concluído" || !dataStr) return "";
+      if (status !== "Pendente Envio" || !dataStr) return "";
       const diffDias = calcDiasAberto(dataStr, null);
-      const semProt = !(protocolo || "").trim();
       if (diffDias <= 0) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">🟢 0-24h</span>`;
       if (diffDias === 1) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[10px] font-bold">🔵 24h-48h</span>`;
       if (diffDias === 2) return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 text-[10px] font-bold">🟡 48h-72h</span>`;
-      return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d ${semProt ? "(SLA!)" : ""}</span>`;
+      return `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold">🔴 ${diffDias}d (SLA!)</span>`;
     }
 
     // LOGIN
@@ -1432,6 +1431,7 @@ Dimas GWM`;
       btn.textContent = "⏳ Gerando .EML...";
       try {
         const qtd = await baixarRascunhoEML(r, r.anexos || []);
+        if (r.status === "Pendente Envio") r.status = "Aguardando GWM";
         registrarLog(r, `Rascunho .EML baixado (${qtd} anexo(s))`);
         await salvarRegistroNuvem(r);
       } finally {
@@ -1444,6 +1444,7 @@ Dimas GWM`;
       const r = registros.find(x => x.id === id);
       if (!r) return;
       const qtd = await baixarRascunhoEML(r, r.anexos || []);
+      if (r.status === "Pendente Envio") r.status = "Aguardando GWM";
       registrarLog(r, `Rascunho .EML baixado (${qtd} anexo(s))`);
       await salvarRegistroNuvem(r);
     };
@@ -1919,7 +1920,7 @@ Dimas GWM`;
           statusPeca: "Não necessita peça",
           statusRessarcimento: "Pendente envio",
           protocolo: "",
-          status: "Aguardando GWM",
+          status: (modo === "eml" || modo === "web" || modo === "app") ? "Aguardando GWM" : "Pendente Envio",
           historico: []
         };
         registrarLog(novo, `Registrado (${novo.modelo})`);
@@ -2630,7 +2631,7 @@ Dimas GWM`;
           (r.transportadora || "").toLowerCase().includes(busca);
         if (!matchTexto) return false;
         if (tipoFiltro === "Todos") return true;
-        if (tipoFiltro === "SemProtocolo") return r.status !== "Concluído" && !(r.protocolo || "").trim();
+        if (tipoFiltro === "SemProtocolo") return r.status === "Pendente Envio";
         if (tipoFiltro === "SemOK") return !r.okFunilaria;
         return r.tipo === tipoFiltro;
       });
