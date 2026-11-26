@@ -596,6 +596,25 @@
 
     <!-- ABA 5: CONFIGURAÇÃO IA GEMINI & USUÁRIOS -->
     <section id="tab-usuarios" class="hidden space-y-5">
+      <!-- PAINEL DE BACKUP AUTOMÁTICO DIÁRIO (DRIVE 5TB + LOCAL) -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 card-shadow flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🛡️</span>
+            <h2 class="text-base font-extrabold text-slate-900">Backup Automático Diário (Drive 5TB + Local)</h2>
+          </div>
+          <p id="auto-backup-status" class="text-xs text-slate-500">Verificando último backup automático...</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btn-backup-nuvem-agora" onclick="executarAutoBackupDiario(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow transition">
+            ☁️ Backup no Drive Agora
+          </button>
+          <button type="button" id="btn-restaurar-snapshot" onclick="restaurarUltimoAutoBackupLocal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition">
+            ↩️ Restaurar Snapshot Local
+          </button>
+        </div>
+      </div>
+
       <div class="bg-gradient-to-r from-purple-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <span class="text-lg">✨</span>
@@ -904,6 +923,9 @@
       if (modalRegistroId) {
         const stillExists = registros.find(x => x.id === modalRegistroId);
         if (stillExists) abrirModalDossie(modalRegistroId);
+      }
+      if (registros.length > 0) {
+        executarAutoBackupDiario(false);
       }
     }, () => {
       document.getElementById("cloud-status-login").textContent = "⚠️ Erro Firestore";
@@ -1307,7 +1329,7 @@
       if (tab === "dashboard") renderDashboard();
       if (tab === "planilha") renderPlanilha();
       if (tab === "novo") updateLivePreview();
-      if (tab === "usuarios") renderUsuarios();
+      if (tab === "usuarios") { renderUsuarios(); atualizarStatusAutoBackupUI(); }
     };
 
     // OCORRÊNCIA & OUTLOOK
@@ -1347,8 +1369,11 @@
       const chassi = (obj.chassi || "000000").toUpperCase();
       const ult6 = chassi.slice(-6);
       const isAvaria = obj.tipo === "Avaria";
-      const horaAtual = new Date().getHours();
-      const saudacao = horaAtual < 12 ? "Bom dia," : (horaAtual < 18 ? "Boa tarde," : "Boa noite,");
+      const agora = new Date();
+      const minutosTotais = agora.getHours() * 60 + agora.getMinutes();
+      const saudacao = (minutosTotais >= 480 && minutosTotais <= 720)
+        ? "Bom dia,"
+        : ((minutosTotais >= 721 && minutosTotais <= 1080) ? "Boa tarde," : "Boa noite,");
 
       const tituloAssunto = isAvaria ? "PROCESSO DE AVARIA" : "PROCESSO DE ITEM FALTANTE";
       const modeloCurto = (obj.modelo || "").replace(/^Haval\s+H6\s+/i, "").replace(/^Haval\s+/i, "").toUpperCase();
@@ -1360,8 +1385,8 @@
         : "Segue processo de item faltante no seguinte chassi:";
 
       const linhaFinal = isAvaria
-        ? "\n@Jean Gustavo Mingarini, favor encaminhar orçamento. Obrigado!!"
-        : "\nFavor verificar e providenciar envio. Obrigado!!";
+        ? "\n@Jean Gustavo Mingarini, favor encaminhar orçamento. Obrigado!!\n\nA/C Arthur Siepmann"
+        : "\nFavor verificar e providenciar envio. Obrigado!!\n\nA/C Arthur Siepmann";
 
       const linkDriveBloco = obj.drive ? `\nFotos / Docs (Drive): ${obj.drive}\n` : "";
 
@@ -2826,7 +2851,159 @@ Dimas GWM`;
       link.click();
     };
 
-    // BACKUP JSON
+    // BACKUP JSON MANUAL & AUTOMÁTICO DIÁRIO
+    function gerarConteudoCSVBackup() {
+      const headers = ["Chassi (6 digitos)", "Chassi Completo", "Modelo", "Cor", "Tipo", "Qual Avaria", "Tapete", "Data", "Transportadora", "NF/CT-e", "OK Funilaria", "Protocolo GWM", "Status", "Pasta Drive"];
+      const rows = registros.map(r => [
+        (r.chassi || "").slice(-6),
+        r.chassi || "",
+        r.modelo || "",
+        `"${(r.cor || "").replace(/"/g, '""')}"`,
+        r.tipo || "",
+        `"${(r.descricao || "").replace(/"/g, '""')}"`,
+        r.tapete || "Sim",
+        r.data || "",
+        `"${(r.transportadora || "").replace(/"/g, '""')}"`,
+        `"${(r.docFiscal || "").replace(/"/g, '""')}"`,
+        r.okFunilaria ? "Sim" : "Não",
+        r.protocolo || "",
+        r.status || "",
+        r.drive || ""
+      ]);
+      return "\uFEFF" + [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
+    }
+
+    function stringParaBase64UTF8(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    function atualizarStatusAutoBackupUI() {
+      const el = document.getElementById("auto-backup-status");
+      if (!el) return;
+      const lastDate = localStorage.getItem("dimas_gwm_autobkp_date");
+      const lastTime = localStorage.getItem("dimas_gwm_autobkp_time");
+      const snapRaw = localStorage.getItem("dimas_gwm_autobkp_snapshot");
+      if (lastDate && snapRaw) {
+        try {
+          const snap = JSON.parse(snapRaw);
+          const qtd = Array.isArray(snap.registros) ? snap.registros.length : 0;
+          el.innerHTML = `✅ Último backup automático: <strong>${lastDate.split("-").reverse().join("/")} às ${lastTime || "00:00"}</strong> (${qtd} veículo(s) protegidos no Drive 5TB e no aparelho).`;
+        } catch (_) {
+          el.textContent = "✅ Backup automático ativo.";
+        }
+      } else {
+        el.textContent = "⏳ Aguardando primeira sincronização diária automática.";
+      }
+    }
+
+    window.executarAutoBackupDiario = async function(forcarManual = false) {
+      if (!registros || !registros.length) return;
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const horaStr = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const ultimoDia = localStorage.getItem("dimas_gwm_autobkp_date");
+
+      // Sempre atualiza o snapshot local silenciosamente
+      const payload = { dataBackup: new Date().toISOString(), usuarios, registros };
+      try {
+        localStorage.setItem("dimas_gwm_autobkp_snapshot", JSON.stringify(payload));
+      } catch (_) {}
+
+      // Se já fez backup hoje no Drive 5TB e não foi clique manual, apenas atualiza o status
+      if (!forcarManual && ultimoDia === hojeStr) {
+        atualizarStatusAutoBackupUI();
+        return;
+      }
+
+      if (!navigator.onLine) return;
+
+      const btn = document.getElementById("btn-backup-nuvem-agora");
+      if (btn && forcarManual) {
+        btn.disabled = true;
+        btn.textContent = "⏳ Salvando no Drive...";
+      }
+
+      try {
+        const jsonBase64 = stringParaBase64UTF8(JSON.stringify(payload, null, 2));
+        const csvBase64 = stringParaBase64UTF8(gerarConteudoCSVBackup());
+
+        const resp = await fetch(DRIVE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            folderName: "_BACKUPS_AUTOMATICOS",
+            files: [
+              {
+                name: `BACKUP_DIMAS_GWM_${hojeStr}.json`,
+                mimeType: "application/json",
+                base64: jsonBase64
+              },
+              {
+                name: `PLANILHA_BACKUP_${hojeStr}.csv`,
+                mimeType: "text/csv",
+                base64: csvBase64
+              }
+            ]
+          })
+        });
+
+        const resJson = await resp.json();
+        if (resJson && resJson.ok) {
+          localStorage.setItem("dimas_gwm_autobkp_date", hojeStr);
+          localStorage.setItem("dimas_gwm_autobkp_time", horaStr);
+          atualizarStatusAutoBackupUI();
+          if (forcarManual) {
+            mostrarToast(`Backup salvo no Drive 5TB (_BACKUPS_AUTOMATICOS) com ${registros.length} veículo(s)!`, "success");
+          }
+        } else if (forcarManual) {
+          throw new Error(resJson?.error || "Falha ao gravar backup no Drive");
+        }
+      } catch (err) {
+        if (forcarManual) {
+          mostrarToast("Erro no backup Drive: " + err.message, "error", 4500);
+        }
+      } finally {
+        if (btn && forcarManual) {
+          btn.disabled = false;
+          btn.textContent = "☁️ Backup no Drive Agora";
+        }
+      }
+    };
+
+    window.restaurarUltimoAutoBackupLocal = async function() {
+      const raw = localStorage.getItem("dimas_gwm_autobkp_snapshot");
+      if (!raw) {
+        mostrarToast("Nenhum snapshot local encontrado ainda.", "warning");
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        if (!Array.isArray(data.registros) || !data.registros.length) {
+          mostrarToast("O snapshot local está vazio.", "warning");
+          return;
+        }
+        const dataFmt = data.dataBackup ? new Date(data.dataBackup).toLocaleString("pt-BR") : "recente";
+        if (!confirm(`Restaurar ${data.registros.length} veículo(s) do snapshot automático de ${dataFmt}?`)) return;
+
+        for (const reg of data.registros) {
+          await salvarRegistroNuvem(reg);
+        }
+        if (Array.isArray(data.usuarios)) {
+          for (const u of data.usuarios) {
+            await salvarUsuarioNuvem(u);
+          }
+        }
+        mostrarToast(`Restauração concluída (${data.registros.length} veículos)!`, "success");
+      } catch (err) {
+        mostrarToast("Erro ao restaurar snapshot: " + err.message, "error");
+      }
+    };
+
     window.fazerBackupJSON = function() {
       const payload = { dataBackup: new Date().toISOString(), usuarios, registros };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
